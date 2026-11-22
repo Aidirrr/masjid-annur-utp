@@ -55,18 +55,18 @@ Engineered with procedural Python geometry generation and a custom zero-dependen
 
 ```mermaid
 flowchart TD
-    subgraph Geometry Pipeline (Python)
+    subgraph Geometry["Geometry Pipeline (Python)"]
         A["Architectural References & Drone Photography"] --> B["Procedural Generators (annur_arch.py, main_hall.py, annur_land.py)"]
         B --> C["build.py (Binary glTF 2.0 Serializer)"]
         C --> D["Masjid-An-Nur-UTP.glb (5.3 MB Binary)"]
     end
 
-    subgraph Build & Packaging
+    subgraph Packaging["Build & Packaging"]
         D --> E["Base64 + Gzip Stream Compression"]
         E --> F["Self-Contained Bundle (dist/index.html - 6.7 MB)"]
     end
 
-    subgraph Runtime Client Engine (Pure WebGL 2.0)
+    subgraph Runtime["Runtime Client Engine (Pure WebGL 2.0)"]
         F --> G["Decompression & Binary Buffer Parsing"]
         G --> H["Custom WebGL 2.0 & GLSL Shader Pipeline"]
         G --> I["Fallback: Software 2D Canvas Rasterizer"]
