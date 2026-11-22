@@ -1,7 +1,6 @@
 # Masjid An-Nur UTP · Interactive 3D Visualizer
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/92707481-2380-42c2-a7ff-6a8ce4d7a9cf/deploy-status)](https://app.netlify.com/sites/masjid-annur-utp/deploys)
-[![Live Demo](https://img.shields.io/badge/Live_Demo-masjid--annur--utp.netlify.app-00C7B7?style=flat&logo=netlify)](https://masjid-annur-utp.netlify.app)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-masjid--annur--utp.netlify.app-00C7B7?style=flat)](https://masjid-annur-utp.netlify.app)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=flat&logo=github)](https://github.com/Aidirrr/masjid-annur-utp)
 
 > 🌐 **Live Web Application**: **[https://masjid-annur-utp.netlify.app](https://masjid-annur-utp.netlify.app)**
