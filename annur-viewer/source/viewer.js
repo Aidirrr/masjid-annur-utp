@@ -1,4 +1,13 @@
 'use strict';
+(() => {
+    const stripNetlifyBadge = () => {
+        for (const el of document.querySelectorAll('iframe[id*="nl-"], iframe[src*="netlify"], script[data-nf-variant]')) {
+            el.remove();
+        }
+    };
+    stripNetlifyBadge();
+    new MutationObserver(stripNetlifyBadge).observe(document.documentElement, { childList: true, subtree: true });
+})();
 const $ = id => document.getElementById(id);
 const canvas=$('scene'), statusBox=$('status'), preset=$('preset');
 const TAU=Math.PI*2, fov=.61;

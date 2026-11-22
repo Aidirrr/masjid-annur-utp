@@ -20,9 +20,11 @@ canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}canvas
 .walk-controls[hidden],.walk-help[hidden]{display:none}.walk-controls{display:flex;gap:4px;touch-action:none}.walk-controls button{min-width:42px;min-height:42px}.walk-controls,.walk-help{position:absolute;left:16px;background:#fafbf4ed;border-radius:7px;padding:4px}.walk-controls{bottom:48px}.walk-help{bottom:15px;padding:7px;font-size:12px}.stage:has(.walk-help:not([hidden])) .hint{display:none}@media(max-width:650px){.scene-options{justify-content:flex-start}.walk-help{max-width:47%}}
 .activity-bar{position:absolute;top:12px;left:12px;right:auto;max-width:calc(100% - 24px);display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:6px 10px;background:#fafbf4ed;border-radius:7px;font-size:12px}.activity-bar select,.activity-bar button{padding:6px;border:1px solid #bdc7bf;border-radius:4px;background:#fffefa}.walk-controls .rotation{padding-inline:6px}
 body.clean header,body.clean footer,body.clean .activity-bar,body.clean .buttons,body.clean .hint{display:none!important}body.clean main{grid-template-rows:1fr}
+#nl-hud-frame,#nl-badge-frame,iframe[id*="nl-"],iframe[src*="netlify"],script[data-nf-variant]{display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;width:0!important;height:0!important}
 </style>
 </head>
 <body>
+<div id="nl-hud-frame" data-guard="1" style="display:none!important"></div><div id="nl-badge-frame" data-guard="1" style="display:none!important"></div>
 <svg aria-hidden="true" style="display:none" xmlns="http://www.w3.org/2000/svg"><defs>
 <symbol id="download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></symbol>
 <symbol id="minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="plus" viewBox="0 0 24 24"><path d="M5 12h14m-7-7v14"/></symbol>
