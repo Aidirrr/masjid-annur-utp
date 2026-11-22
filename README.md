@@ -54,8 +54,8 @@ The project combines procedural 3D geometric modeling in Python with a custom li
 
 ### 1. Visual Reference & Screenshot Alignment
 The dimensions and layout follow actual reference photographs, high-angle drone views, and site screenshots:
-* **Overhead & Aerial Perspective**: High-angle drone imagery and satellite views guided the stepped terrace perimeter, lakeside topography, and arcade alignment.
-* **Interior & Structural Details**: On-site reference photographs were used to accurately place columns, arcade grids, prayer hall bounds, mezzanine railings, and wudu areas.
+* **Overhead & Aerial Perspective**: High-angle drone imagery ([image/mosque-aerial-dome-top-down.png](image/mosque-aerial-dome-top-down.png)) and satellite views ([image/mosque-satellite-overhead-view.png](image/mosque-satellite-overhead-view.png)) guided the stepped terrace perimeter, lakeside topography, and arcade alignment.
+* **Interior & Structural Details**: On-site reference photographs ([image/prayer-hall-mihrab-wall-elevation.png](image/prayer-hall-mihrab-wall-elevation.png) and [image/prayer-hall-dome-calligraphy-zenith.png](image/prayer-hall-dome-calligraphy-zenith.png)) were used to accurately place columns, arcade grids, prayer hall bounds, mezzanine railings, and wudu areas.
 * **Texture Studies**: Authentic photographs of the marble mihrab ([image/mihrab-marble-wall-detail.jpeg](image/mihrab-marble-wall-detail.jpeg)) and calligraphy bands were processed into custom PBR textures.
 
 ### 2. Procedural Geometry Engine (`annur-viewer/source/`)
