@@ -200,13 +200,15 @@ To modify the procedural geometry, shaders, or simulation logic:
 
 ## 🤝 Community Contributions & Roadmap
 
-Contributions, suggestions, and improvements are very welcome! Here are potential areas for further technical enhancement:
+Contributions, suggestions, and improvements are very welcome! We maintain an active 14-point enhancement backlog detailing high-priority architectural additions, cultural features, and interactive elements:
 
-* **Interior Detail Expansion**: Adding chandeliers, acoustic wood panels, ceiling fans, and detailed wudu water tap fittings.
-* **Audio Engineering**: Spatial 3D Web Audio for water ripples, lake breeze, prayer call (*adhan*), and reverberant recitation.
-* **WebXR Immersive Walkthrough**: Adding VR/AR headset support for virtual tours inside the prayer hall.
-* **Foliage & Botanical Variety**: Expanding the procedural vegetation system with varied tropical trees, reeds, and water lilies.
-* **Performance Profiling**: Level of Detail (LOD) geometry mesh decimation for lower-end mobile devices.
+👉 **[View Full Project Roadmap & TODO Backlog (TODO.md)](TODO.md)**
+
+### Key Roadmap Highlights:
+* **Interactive Community Elements**: Tabung Masjid with DuitNow QR donations, lakeside fish feeding with RM1 sponsorships, and the roaming mosque cat (*Si Kucing Masjid*).
+* **Architectural Accuracy**: Dedicated second-floor Muslimat mezzanine with modesty screens, realigned wudu wings, Bilik Imam & Khatib.
+* **Islamic Art & Education**: High-resolution Quranic drum frieze calligraphy with interactive *Ayah Explainer* drawer (Surah An-Nur 24:35 & Ayat al-Kursi).
+* **Campus Culture & Events**: Thursday evening *Blessings Over Meals (BOM)* communal fast-breaking simulation, student avatars, and parked campus motorbikes.
 
 ### How to Contribute:
 1. **Fork** the repository on GitHub.
