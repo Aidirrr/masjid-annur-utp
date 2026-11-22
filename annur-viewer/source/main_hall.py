@@ -1,4 +1,4 @@
-"""Interior of the domed prayer hall, following the mezzanine plan and photographs."""
+"""Interior of the domed prayer hall, following reference photographs."""
 from math import cos, pi, sin, sqrt, tau
 
 

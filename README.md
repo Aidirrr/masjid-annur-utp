@@ -23,7 +23,7 @@ This project is an interactive 3D recreation of Masjid An-Nur UTP, designed to r
 ### Key Features:
 * **Authentic Architecture**:
   * **Central Grand Dome**: Procedurally generated ribbed dome with Islamic diamond lattice patterns and finial, resting on an elevated drum.
-  * **Stepped Arcades & Plaza**: Extensive colonnaded walkways topped with multiple miniature cupolas extending out into the lake, following UTP's architectural floor plans.
+  * **Stepped Arcades & Plaza**: Extensive colonnaded walkways topped with multiple miniature cupolas extending out into the lake, based on visual reference views.
   * **Interior Prayer Hall**: Detailed prayer hall with authentic marble mihrab, minbar staircase, Qur'anic calligraphy drum frieze, mezzanine gallery railing, and prayer carpet rows.
   * **Lakeside Setting**: Realistic water shaders with real-time reflections, surrounding tropical hills, causeway approach, and fish feeding terrace.
 * **Living Simulation**:
@@ -46,10 +46,10 @@ This project is an interactive 3D recreation of Masjid An-Nur UTP, designed to r
 
 The project combines procedural 3D geometric modeling in Python with a custom lightweight WebGL 2.0 rendering engine:
 
-### 1. Architectural Reference & Blueprint Mapping
-The dimensions and layout follow actual architectural references:
-* **Ground Plaza & Mezzanine Plans**: Blueprint drawings ([image/ground-plaza-plan.jpeg](image/ground-plaza-plan.jpeg) and [image/mezzanine-floor-plan.jpeg](image/mezzanine-floor-plan.jpeg)) were used to accurately place columns, arcade grids, prayer hall bounds, and wudu areas.
-* **Drone & Satellite Photography**: High-angle drone imagery and satellite photos guided the stepped terrace perimeter and lakeside topography.
+### 1. Visual Reference & Screenshot Alignment
+The dimensions and layout follow actual reference photographs, high-angle drone views, and site screenshots:
+* **Overhead & Aerial Perspective**: High-angle drone imagery and satellite views guided the stepped terrace perimeter, lakeside topography, and arcade alignment.
+* **Interior & Structural Details**: On-site reference photographs were used to accurately place columns, arcade grids, prayer hall bounds, mezzanine railings, and wudu areas.
 * **Texture Studies**: Authentic photographs of the marble mihrab ([image/mihrab-marble-wall-detail.jpeg](image/mihrab-marble-wall-detail.jpeg)) and calligraphy bands were processed into custom PBR textures.
 
 ### 2. Procedural Geometry Engine (`annur-viewer/source/`)
@@ -120,4 +120,4 @@ Contributions, ideas, and improvements are very welcome! Here are some exciting 
 
 ## 📜 License & Acknowledgements
 Architectural study and visualizer developed for **Masjid An-Nur, Universiti Teknologi PETRONAS**.
-Reference drawings and photographs courtesy of UTP and community contributors.
+Reference photographs and visual documentation courtesy of community contributors.
