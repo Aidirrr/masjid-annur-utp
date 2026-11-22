@@ -1,5 +1,11 @@
 # Masjid An-Nur UTP · Interactive 3D Visualizer
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/92707481-2380-42c2-a7ff-6a8ce4d7a9cf/deploy-status)](https://app.netlify.com/sites/masjid-annur-utp/deploys)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-masjid--annur--utp.netlify.app-00C7B7?style=flat&logo=netlify)](https://masjid-annur-utp.netlify.app)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=flat&logo=github)](https://github.com/Aidirrr/masjid-annur-utp)
+
+> 🌐 **Live Web Application**: **[https://masjid-annur-utp.netlify.app](https://masjid-annur-utp.netlify.app)**
+
 An interactive, self-contained 3D architectural model and living simulation of **Masjid An-Nur** at Universiti Teknologi PETRONAS (UTP) in Seri Iskandar, Perak, Malaysia.
 
 Explore the iconic floating mosque from the lake, step inside the grand domed prayer hall, or experience the Friday prayer congregation with animated worshippers, birds, and real-time sun positioning.
@@ -67,23 +73,28 @@ Rather than relying solely on monolithic 3D sculpting software, the architecture
 
 ## 🚀 How to Run the Visualizer
 
-### Option 1: Direct File Opening (No Server Needed)
-Simply open the self-contained build file in Google Chrome or any modern browser:
+### Option 1: Live Web Application (Netlify)
+Launch the 3D visualizer instantly in any browser without installing or running anything:
+* **[https://masjid-annur-utp.netlify.app](https://masjid-annur-utp.netlify.app)**
+
+#### Direct URL Preset Links:
+* **Lakeside Daytime**: [https://masjid-annur-utp.netlify.app/?light=day&view=lake](https://masjid-annur-utp.netlify.app/?light=day&view=lake)
+* **Inside Main Prayer Hall**: [https://masjid-annur-utp.netlify.app/?light=day&view=hall](https://masjid-annur-utp.netlify.app/?light=day&view=hall)
+* **Jumu’ah (Friday Khutbah)**: [https://masjid-annur-utp.netlify.app/?light=day&scene=friday&phase=2&view=gathering](https://masjid-annur-utp.netlify.app/?light=day&scene=friday&phase=2&view=gathering)
+* **Sunset on the Lake**: [https://masjid-annur-utp.netlify.app/?light=sunset&view=lake](https://masjid-annur-utp.netlify.app/?light=sunset&view=lake)
+* **Live Seri Iskandar Lighting**: [https://masjid-annur-utp.netlify.app/?light=live](https://masjid-annur-utp.netlify.app/?light=live)
+* **Clean Capture Mode (No UI)**: [https://masjid-annur-utp.netlify.app/?clean=1&light=day&view=lake](https://masjid-annur-utp.netlify.app/?clean=1&light=day&view=lake)
+
+### Option 2: Direct File Opening (Offline)
+Simply open the local build file in Google Chrome or any modern browser:
 * [annur-viewer/dist/index.html](annur-viewer/dist/index.html)
 
-### Option 2: Local HTTP Server
+### Option 3: Local HTTP Server
 Run a local Python server from the repository root:
 ```bash
 python3 -m http.server 8080 --directory annur-viewer/dist
 ```
 Then visit **[http://localhost:8080](http://localhost:8080)** in your browser.
-
-### URL Query Parameters
-You can jump directly to specific viewpoints and lighting presets:
-* Daytime Lakeside: `http://localhost:8080/?light=day&view=lake`
-* Inside Mosque: `http://localhost:8080/?light=day&view=hall`
-* Friday Khutbah: `http://localhost:8080/?light=day&scene=friday&phase=2&view=gathering`
-* Clean Screenshot Mode (hides UI): `http://localhost:8080/?clean=1&light=day&view=lake`
 
 ### Standalone 3D Model (GLB)
 The compiled [Masjid-An-Nur-UTP.glb](annur-viewer/dist/Masjid-An-Nur-UTP.glb) (5.3 MB) file is standard glTF 2.0. You can import it directly into **Blender**, **Unity**, **Unreal Engine**, **Godot**, or view it with macOS Quick Look (press Space in Finder).

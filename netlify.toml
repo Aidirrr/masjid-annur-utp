@@ -1,0 +1,3 @@
+[build]
+  publish = "annur-viewer/dist"
+  command = "python3 annur-viewer/source/build.py"
