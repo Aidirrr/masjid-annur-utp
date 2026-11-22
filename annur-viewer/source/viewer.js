@@ -883,13 +883,24 @@ canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();renderer=null;
 canvas.addEventListener('webglcontextrestored',()=>location.reload());
 (async()=>{
     try{
-        setLighting('live');chooseView('lake',false);
+        const params=new URLSearchParams(location.search);
+        if(params.get('clean'))document.body.classList.add('clean');
+        const initLight=params.get('lighting')||params.get('light')||'live';
+        const initView=params.get('preset')||params.get('view')||'lake';
+        setLighting(initLight);
+        if($('lighting'))$('lighting').value=initLight;
+        chooseView(initView,false);
+        if(preset)preset.value=initView;
         const [arch,land]=await Promise.all([unpack('arch'),unpack('land')]);modelBytes=arch;
         const parts=(await Promise.all([parseModel(arch),parseModel(land)])).flat().filter(part=>part.name!=='Paving joints');
         walkMap=new WalkingMap(parts);miniatures=new MiniatureScene();birds=new MosqueBirds();
         const gl=canvas.getContext('webgl2',{alpha:false,antialias:true,powerPreference:'high-performance'});
         renderer=gl?new WebGLScene(gl,parts):new SoftwareScene(canvas.getContext('2d',{alpha:false}),parts);
         $('activity').disabled=false;$('feed').disabled=false;
+        const sceneParam=params.get('scene');
+        if(sceneParam&&$('activity')){$('activity').value=sceneParam;$('activity').dispatchEvent(new Event('change'));}
+        const phaseParam=params.get('phase');
+        if(phaseParam!==null&&$('phase')){$('phase').value=phaseParam;$('phase').dispatchEvent(new Event('change'));}
         statusBox.textContent='';requestAnimationFrame(frame);
     }catch(error){console.error(error);statusBox.textContent='The 3D view could not start. Open the GLB download in a 3D viewer.'}
 })();
