@@ -73,7 +73,8 @@ class MiniatureBatch {
         });
         this.bind=null;this.colors=null;this.triangles=null;
     }
-    frame(x,y,z,heading) {
+    frame(x,y,z,heading,modelScale=1) {
+        this.modelScale=modelScale;
         this.origin[0]=x;this.origin[1]=y;this.origin[2]=z;
         this.c=Math.cos(heading);this.s=Math.sin(heading);
     }
@@ -86,12 +87,15 @@ class MiniatureBatch {
         const f=Math.hypot(uy,uz);
         const fy=f>1e-6?-uz/f:0, fz=f>1e-6?uy/f:1;
         const rx=uy*fz-uz*fy, ry=-ux*fz, rz=ux*fy;
-        const c=this.c,s=this.s,ox=this.origin[0]+c*x+s*z,oy=this.origin[1]+y,oz=this.origin[2]-s*x+c*z;
+        const c=this.c,s=this.s,modelScale=this.modelScale;
+        const ox=this.origin[0]+(c*x+s*z)*modelScale,oy=this.origin[1]+y*modelScale,oz=this.origin[2]+(-s*x+c*z)*modelScale;
         const xx=c*rx+s*rz,xz=-s*rx+c*rz,yx=c*ux+s*uz,yz=-s*ux+c*uz,zx=s*fz,zz=c*fz;
         const base=this.base,out=this.coords;
         for(let i=piece.first;i<piece.end;i++) {
             const j=i*6,k=i*7, px=base[j]*scale,py=base[j+1]*length,pz=base[j+2]*scale;
-            out[k]=ox+xx*px+yx*py+zx*pz;out[k+1]=oy+ry*px+uy*py+fy*pz;out[k+2]=oz+xz*px+yz*py+zz*pz;
+            out[k]=ox+(xx*px+yx*py+zx*pz)*modelScale;
+            out[k+1]=oy+(ry*px+uy*py+fy*pz)*modelScale;
+            out[k+2]=oz+(xz*px+yz*py+zz*pz)*modelScale;
             const nx=base[j+3],ny=base[j+4],nz=base[j+5];
             out[k+3]=xx*nx+yx*ny+zx*nz;out[k+4]=ry*nx+uy*ny+fy*nz;out[k+5]=xz*nx+yz*ny+zz*nz;
         }
@@ -106,7 +110,14 @@ class MiniatureScene {
         this.congregation.visible=false;
         this.friday=false;
         this.fridayTime=0;
-        this.parts=[this.people,this.lake,this.congregation];
+        this.dinner=new MiniatureBatch('Thursday evening meal',true);
+        this.recitation=new MiniatureBatch('Thursday recitation',true);
+        this.lawn=new MiniatureBatch('Afternoon on the lawn',true);
+        this.parts=[this.people,this.lake,this.congregation,this.dinner,this.recitation,this.lawn];
+        this.afternoon=false;
+        this.thursday=false;
+        this.thursdayTime=0;
+        this.campusAssets();
         this.walker=this.person('#477f80','#314554','#a7804f','#b57e5d','#f3eee0');
         this.worshipper=this.person('#e1d6b6','#5c6864','#86724e','#a26a4b','#333633');
         this.feeder=this.person('#a45d48','#344755','#55645a','#b98059','#d9c7a2');
@@ -132,7 +143,8 @@ class MiniatureScene {
         }));
         this.nextHandful=0;
         this.lastThrow=-Infinity;
-        this.school=Array.from({length:9},(_,i)=>this.fish(i));
+        this.spray=Array.from({length:12},()=>this.lake.oval(.024,.024,'#d2ece4',.06,5));
+        this.school=Array.from({length:15},(_,i)=>this.fish(i));
         // hip height/advance, knee and ankle in the sagittal plane, torso
         // angle, head angle, then elbow and wrist positions.
         this.stand=[.88,0,.49,.025,.088,0,0,.12,.22,1.13,.055,.065,1.17,.17];
@@ -146,12 +158,173 @@ class MiniatureScene {
         this.pose=new Float64Array(this.stand.length);
         this.readingPose=new Float64Array(this.sit);
         this.parts.forEach(part=>part.finish());
+        this.parkCycles();
         this.people.frame(-4,1.53,5.96,0);
         this.people.place(this.rehal,[0,0,0],[0,1,0]);
         this.update(0);
     }
-    openBookOnStand() {
-        const m=this.people,first=m.colors.length;
+    campusAssets(){
+        const m=this.people;
+        const tawny='#b87443',white='#e9d8ba';
+        this.cat={
+            body:m.oval(.12,.14,tawny,.45),breast:m.oval(.102,.10,white,.22),
+            head:m.oval(.125,.119,tawny,.23),muzzle:m.oval(.074,.058,white,.09),
+            ears:[0,1].map(()=>m.surface([[0,.067,.045],[1,.005,.007]],tawny,.14,5)),
+            eyes:[0,1].map(()=>m.oval(.017,.012,'#414835',.029,5)),
+            legs:[0,1,2,3].map(()=>m.sleeve(.040,.033,white,.21)),
+            tail:[0,1,2].map((_,i)=>m.sleeve(.036-i*.006,.032-i*.007,tawny,.14))
+        };
+        this.catPosition=[-28.6,1.44,-21];
+        this.lastPet=-Infinity;
+        const tones=['#527978','#b16e4c','#71809d','#b9a076'];
+        this.students=tones.slice(0,2).map((shirt,i)=>{
+            const model=this.person(shirt,'#374954',shirt,'#ac795b','#342f2c');
+            model.pack=m.oval(.167,.078,i?'#566544':'#7e5440',.47);
+            model.straps=[0,1].map(()=>m.sleeve(.022,.018,'#57513e',.34));
+            return model;
+        });
+        this.children=tones.slice(2).map((shirt,i)=>{
+            const model=this.person(shirt,'#4d5861',shirt,'#ae7957','#37312a',this.lawn);
+            model.scale=.66+i*.06;
+            return model;
+        });
+        this.ball=this.lawn.oval(.115,.115,'#e3c683',.23);
+        this.meals=[];
+        this.reciters=[];
+        for(let i=0;i<3;i++){
+            this.meals.push({
+                z:-36.4-i*3.6,
+                tray:this.dinner.surface([[0,.40,.40],[.4,.49,.49],[.8,.51,.51],[1,.48,.48],[.55,.45,.45],[.52,0,0]],'#b4bdba',.067,20),
+                rice:this.dinner.oval(.25,.20,'#eddfb9',.11),
+                dates:this.dinner.oval(.087,.095,'#835638',.08),
+                diners:[0,1].map((_,j)=>this.person(tones[(i+j)%4],'#51605a','#827d68','#b18160',j?'#f4ebd7':'#373835',this.dinner))
+            });
+            const reader=this.person(tones[i],'#50605a',tones[i],'#a97454','#f4edda',this.recitation);
+            reader.robe=i===1;
+            this.reciters.push({reader,book:this.openBookOnStand(this.recitation)});
+        }
+        this.tasbih=Array.from({length:14},()=>m.oval(.009,.009,'#835e35',.019,5));
+        this.cycles=[];
+        for(let i=0;i<7;i++){
+            const motor=i<4;
+            const color=tones[i%4];
+            const tubes=Array.from({length:9},()=>m.sleeve(motor?.042:.020,motor?.041:.018,color,1));
+            const wheels=[0,1].map(()=>{
+                const first=m.colors.length,r=motor?.28:.34;
+                for(let j=0;j<14;j++){
+                    const a=j*Math.PI/7,b=(j+1)*Math.PI/7;
+                    const point=(side,angle,radius)=>[side,r+radius*Math.sin(angle),radius*Math.cos(angle)];
+                    for(const side of [-1,1]){
+                        const edge=side*(motor?.074:.025);
+                        m.panel(point(edge,a,r),point(edge,b,r),point(edge,b,r*.80),point(edge,a,r*.80),'#414443');
+                        if(j%2===0)m.panel(point(edge,a,r*.82),point(edge,a+.05,r*.82),[edge,.29,.016],[edge,.29,-.016],'#8d9a99');
+                    }
+                    const w=motor?.074:.025;
+                    m.panel(point(-w,a,r),point(-w,b,r),point(w,b,r),point(w,a,r),'#383e3e');
+                }
+                return {first,end:m.colors.length};
+            });
+            this.cycles.push({motor,tubes,wheels,seat:m.oval(motor?.18:.11,.06,'#474340',.35),
+                shell:motor?m.oval(.18,.22,color,.75):null,
+                shield:motor&&i%2?m.sleeve(.19,.15,color,.44):null,
+                lamp:motor?m.oval(.085,.058,'#ede5c7',.11):null});
+        }
+    }
+    parkCycles(){
+        const m=this.people;
+        this.cycles.forEach(({motor,tubes,wheels,seat,shell,shield,lamp},i)=>{
+            m.frame(motor?-46.3:-41.9,motor?1.06:1.15,motor?-37-i*1.35:4+(i-4)*1.86,.55);
+            const r=motor?.28:.34, rear=-.60,front=.60;
+            for(const [j,z] of [rear,front].entries())m.place(wheels[j],[0,0,z],[0,1,z]);
+            const crank=[0,.31,-.03],saddle=[0,.80,-.22],stem=[0,.79,.37];
+            const rods=[[[0,r,rear],crank],[crank,saddle],[saddle,[0,r,rear]],
+                [saddle,stem],[crank,stem],[stem,[0,r,front]],[stem,[0,1.02,.34]],
+                [[-.25,1.02,.34],[.25,1.021,.34]],[crank,[-.16,.01,.04]]];
+            rods.forEach(([a,b],j)=>m.place(tubes[j],a,b));
+            m.place(seat,[0,.83,-.40],[0,.83,-.14]);
+            if(shell)m.place(shell,[0,.42,-.40],[0,.63,.32]);
+            if(shield)m.place(shield,[0,.33,.22],[0,.73,.40]);
+            if(lamp)m.place(lamp,[0,.86,.40],[0,.88,.51]);
+        });
+    }
+    petCat(seconds=this.lastSceneTime){
+        this.lastPet=seconds;
+    }
+    updateCat(t){
+        const p=this.cat,m=this.people;
+        // Pause at the shoe racks and stretch out on the sunlit gallery tiles.
+        const phase=t%44, outbound=phase<12, moving=outbound||phase>=22&&phase<34;
+        const resting=phase>=12&&phase<22;
+        const u=outbound?phase/12:resting?1:phase<34?1-(phase-22)/12:0;
+        const pet=this.pulse(t-this.lastPet,-.1,.4,2,3);
+        const sleep=resting?this.pulse(phase,12,13,20,22)*(1-pet):0;
+        const z=-20.8-9*u,x=-28.6+.33*Math.sin(u*Math.PI);
+        const y=1.15,h=.28-.15*sleep;
+        this.catPosition=[x,y+h,z];
+        m.frame(x,y,z,outbound||resting?Math.PI:0);
+        m.place(p.body,[0,h,-.25],[0,h+.014,.22]);
+        m.place(p.breast,[0,h-.09,.14],[0,h+.13,.20]);
+        const lift=.026*pet+.009*Math.sin(t*2);
+        const headY=h+.07+lift;
+        m.place(p.head,[0,headY,.205],[0,headY+.21,.225]);
+        m.place(p.muzzle,[0,headY+.038,.32],[0,headY+.11,.324]);
+        for(let j=0;j<2;j++){
+            const side=j?1:-1;
+            m.place(p.ears[j],[side*.076,headY+.16,.21],[side*.095,headY+.29,.195]);
+            m.place(p.eyes[j],[side*.051,headY+.105,.325],[side*.052,headY+.128,.324]);
+        }
+        for(let j=0;j<4;j++){
+            const side=j%2?1:-1,front=j<2?1:-1;
+            const stride=moving?side*front*Math.sin(t*7.6):0;
+            m.place(p.legs[j],[side*.075,h-.03,front*.15],[side*.079,.018+.04*Math.max(0,stride),front*.15+.083*stride+.072*sleep]);
+        }
+        const swish=.07*Math.sin(t*(2+pet));
+        const tail=[[0,h,-.20],[swish,h+.035,-.34],[swish*1.6,h+.13+pet*.07,-.42],[swish*2,h+.23+pet*.13,-.38]];
+        p.tail.forEach((piece,i)=>m.place(piece,tail[i],tail[i+1]));
+    }
+    updateCampus(t){
+        this.updateCat(t);
+        this.students.forEach((student,i)=>{
+            const a=t*.11+i*Math.PI, z=-35.5+11*Math.sin(a), heading=Math.cos(a)>0?0:Math.PI;
+            const greeting=this.pulse(Math.abs(Math.sin(a)),-.02,0,.07,.21);
+            const arms=greeting>.01?{leftFoot:0,rightFoot:0,arms:[
+                [[-.22,1.12,.03],[-.20,.91,.05]],[[.23,1.16,.04],[.16,1.04+.36*greeting,.19]]
+            ]}:null;
+            this.human(student,-28.7+i*.83,1.15,z,heading,this.stand,t*5.4+i,Math.abs(Math.cos(a)),-1,false,arms);
+        });
+        this.lawn.visible=this.afternoon&&!this.thursday;
+        if(this.lawn.visible){
+            this.children.forEach((child,i)=>{
+                const a=t*.67+i*Math.PI;
+                this.human(child,8+1.8*Math.sin(a),1.162,-42+.84*Math.cos(a),Math.atan2(1.8*Math.cos(a),-.84*Math.sin(a)),this.stand,t*8+i,.95);
+            });
+            this.lawn.frame(8+1.3*Math.sin(t*.67+.5),1.162+.18*Math.abs(Math.sin(t*3)),-42,0);
+            this.lawn.place(this.ball,[0,0,0],[0,.23,0]);
+        }
+        const recite=this.thursdayTime%48>=24;
+        this.dinner.visible=this.thursday&&!recite;
+        this.recitation.visible=this.thursday&&recite;
+        if(this.dinner.visible)for(const {z,tray,rice,dates,diners} of this.meals){
+            this.dinner.frame(-25,1.175,z,0);
+            this.dinner.place(tray,[0,0,0],[0,.067,0]);
+            this.dinner.place(rice,[0,.046,0],[0,.16,0]);
+            this.dinner.place(dates,[.25,.046,.14],[.25,.12,.14]);
+            diners.forEach((body,i)=>{
+                const reach=.15+.12*Math.sin(t*1.5+i+z),p=this.readingPose;p.set(this.sit);
+                p[6]=reach;p[7]=.40;p[13]=.28+reach;p[12]=.28;
+                this.human(body,-25+(i?.91:-.91),1.175,z,i?-Math.PI/2:Math.PI/2,p,0,0,-1,true);
+            });
+        }
+        if(this.recitation.visible)this.reciters.forEach(({reader,book},i)=>{
+            const x=-2.2+i*1.15,z=5.1;
+            this.recitation.frame(x,1.53,z+.5,0);
+            this.recitation.place(book,[0,0,0],[0,1,0]);
+            const p=this.readingPose;p.set(this.sit);p[7]=.50+.055*Math.sin(t+i);
+            this.human(reader,x,1.53,z,0,p,0,0,-1,true);
+        });
+    }
+    openBookOnStand(m=this.people) {
+        const first=m.colors.length;
         // A pair of interlocking wooden planks form the X of the folding rehal.
         function plank(sign,start,end,z0,z1) {
             const p=(t,z,thick)=>[sign*(t-.5)*.37+thick,.008+t*.316,z];
@@ -280,14 +453,25 @@ class MiniatureScene {
     }
     human(model,x,ground,z,heading,p,gait=0,strength=0,feedPhase=-1,crossLegged=false,wash=null) {
         const m=model.batch;
-        m.frame(x,ground,z,heading);
+        m.frame(x,ground,z,heading,model.scale||1);
         const bob=strength*.025*(1-Math.cos(2*gait));
         const hipY=p[0]+bob,hipZ=p[1], cs=Math.cos(p[6]),sn=Math.sin(p[6]),hc=Math.cos(p[7]),hs=Math.sin(p[7]);
         const spine=(d,forward=0)=>[0,hipY+d*cs-forward*sn,hipZ+d*sn+forward*cs];
         const shoulder=spine(.535),neck=spine(.585);
         const skull=(d,forward=0)=>[0,neck[1]+d*hc-forward*hs,neck[2]+d*hs+forward*hc];
         m.place(model.torso,spine(-.095),spine(.56));
-        m.place(model.waist,spine(-.087),spine(.064));
+        if(model.robe){
+            m.place(model.waist,[0,.07,hipZ+.13],spine(.064),1.46);
+        }else{
+            m.place(model.waist,spine(-.087),spine(.064));
+        }
+        if(model.pack){
+            m.place(model.pack,spine(.02,-.16),spine(.49,-.16));
+            for(let i=0;i<2;i++){
+                const x=i===0?-.12:.12;
+                m.place(model.straps[i],[x,hipY+.19,.11],[x,shoulder[1],.08]);
+            }
+        }
         m.place(model.collar,spine(.525),neck);
         m.place(model.head,neck,skull(.215));m.place(model.hat,skull(.179),skull(.263));
         m.place(model.nose,skull(.083,.101),skull(.14,.104));
@@ -470,9 +654,10 @@ class MiniatureScene {
         for(let i=0;i<this.school.length;i++){
             const f=this.school[i],a=time*(.34+.025*(i%4))+i*2.39996;
             const radius=(.99+(i%4)*.51)*(1-.52*feeding);
-            const x=8+radius*Math.sin(a), z=26.42+radius*.65*Math.cos(a);
+            const schoolOffset=i<9?0:(1-Math.min(1,feeding))*3.6;
+            const x=8+schoolOffset+radius*Math.sin(a), z=26.14+radius*.65*Math.cos(a);
             const heading=Math.atan2(Math.cos(a),-.65*Math.sin(a));
-            const depth=-.165-.034*(i%3)+.034*Math.sin(a*3)+.037*feeding;
+            const depth=-.165-.034*(i%3)+.034*Math.sin(a*3)+.095*feeding;
             m.frame(x,depth,z,heading);
             const size=f.size,tail=.074*Math.sin(time*(5.6+i*.16)+i),wag=tail*size;
             const snout=[0,0,.275*size],base=[wag*.26,0,-.26*size],tip=[wag,0,-.405*size];
@@ -514,6 +699,7 @@ class MiniatureScene {
     update(seconds) {
         const t=Math.max(0,Number.isFinite(seconds)?seconds:0);
         this.lastSceneTime=t;
+        this.updateCampus(t);
         this.congregation.visible=this.friday;
         const service=((this.fridayTime%100)+100)%100;
         const cycle=(t+8)%59;
@@ -571,6 +757,14 @@ class MiniatureScene {
                 }
             }
             this.human(reader.body,x,1.53,z,yaw,posture,step,walking,-1,crossLegged);
+            if(i===2){
+                this.tasbih.forEach((bead,j)=>{
+                    const a=j*Math.PI*2/this.tasbih.length+t*.65;
+                    const y=this.friday&&service>=28?-4:p[12]-.042+.049*Math.cos(a);
+                    const bx=p[11]+.028*Math.sin(a);
+                    this.people.place(bead,[bx,y,p[13]+.03],[bx,y+.017,p[13]+.03]);
+                });
+            }
         });
         this.washers.forEach((person,i)=>this.washAtStation(person,t,i));
         const phase=t%6;
@@ -588,5 +782,15 @@ class MiniatureScene {
             if(age>=0&&age<4.8)gathering=Math.max(gathering,1.32*this.pulse(age,.15,1.15,2.8,4.8));
         }
         this.swim(t,gathering);
+        const impact=this.rippleAge(t);
+        this.lake.frame(8,0,26.1,0);
+        this.spray.forEach((drop,i)=>{
+            const age=impact-i*.012, angle=i*2.4;
+            const active=age>=0&&age<.48;
+            const radius=active?.10+age*(.7+i%3*.22):0;
+            const y=active?.015+age*(2.1-4.8*age):-4;
+            const x=radius*Math.sin(angle),z=radius*Math.cos(angle);
+            this.lake.place(drop,[x,y,z],[x,y+.052,z]);
+        });
     }
 }

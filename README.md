@@ -177,6 +177,14 @@ The generated [Masjid-An-Nur-UTP.glb](annur-viewer/dist/Masjid-An-Nur-UTP.glb) (
 
 ---
 
+## Exploring the mosque
+
+On a touchscreen, the viewer opens in first person. Use the left thumbstick to walk and swipe the scene with your right thumb to look around. Tap **Jump** to hop or enable **Sprint** to move faster. A nearby action appears beside interactive objects. Open **View controls** to change viewpoint, lighting, or switch to orbit. On a keyboard, use WASD to walk, Shift to sprint and Space to jump.
+
+**Explore** opens the noticeboard, donation boxes, contributor plaque, ayah readings and guided history tour. **Feed fish** opens the optional RM1 donation prompt before tossing virtual food. The supplied DuitNow QR is embedded in the viewer and can be saved on a phone. Live prayer times and the GitHub contributor list need an internet connection.
+
+Select **Thursday · Blessings Over Meals** to see iftar along the corridor and evening recitation in the hall. Use the phase selector to move between them. The Muslimat gallery is accessible by the staircase beside the prayer rows or through the viewpoint menu.
+
 ## 🛠️ Build & Development Workflow
 
 To modify the procedural geometry, shaders, or simulation logic:

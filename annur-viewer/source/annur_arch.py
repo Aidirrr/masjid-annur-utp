@@ -166,13 +166,19 @@ def build(s):
                 quad('Prayer hall envelope',lo[i],lo[j],hi[j],hi[i],WHITE if i==0 else col)
 
     # A broad stone ramp bridges the 380 mm rise to the main hall's carpet.
-    quad('East hall threshold',(12.82,1.53,5.55),(12.82,1.53,8.35),
-         (14.90,1.15,8.35),(14.90,1.15,5.55),TILE)
-    for z in (5.55,8.35):
-        tri('East hall threshold',(12.82,1.15,z),(12.82,1.53,z),(14.90,1.15,z),CREAM)
-    box('East portal head',(12.90,4.72,6.95),(.38,.14,2.80),TRIM)
-    for z in (5.47,8.43):
-        box('East portal stone frame',(12.92,3.05,z),(.36,3.84,.16),TRIM)
+    for sign in (-1,1):
+        a,b=sign*12.82,sign*14.90
+        quad('Side hall threshold',(a,1.53,5.55),(a,1.53,8.35),
+             (b,1.15,8.35),(b,1.15,5.55),TILE)
+        for z in (5.55,8.35):
+            tri('Side hall threshold',(a,1.15,z),(a,1.53,z),(b,1.15,z),CREAM)
+        box('Side exit portal head',(sign*12.90,4.72,6.95),(.38,.14,2.80),TRIM)
+        for z in (5.47,8.43):
+            box('Side exit portal jambs',(sign*12.92,3.05,z),(.36,3.84,.16),TRIM)
+            # Leaves stand open into the arcade, as seen from the hall glazing.
+            box('Clear architectural glazing',(sign*13.56,2.99,z),(1.23,2.89,.035),'#b9dadb')
+            box('Side exit push bars',(sign*13.56,2.57,z+.036),(1.11,.045,.044),MULLION)
+            box('Side exit door stiles',(sign*14.15,3.0,z),(.055,2.92,.07),MULLION)
     roof=clipped_rect(13.4,11.2,2.95,10.52)
     # Line the opening around the dome and leave its vault visible from below.
     edge=[]

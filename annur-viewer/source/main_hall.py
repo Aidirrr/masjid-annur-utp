@@ -1,4 +1,5 @@
 """Interior of the domed prayer hall, following reference photographs."""
+import furnishings
 from math import cos, pi, sin, sqrt, tau
 
 
@@ -140,6 +141,8 @@ def build(s):
         box('Mezzanine fascia vents',(x+.875,5.29,front+.016),(1.65,.17,.035),'#767a75')
         for h in (5.26,5.30,5.34):
             box('Mezzanine vent blades',(x+.875,h,front+.041),(1.65,.014,.02),'#b9b9ad')
+        if j == 12:  # Upper stair landing
+            continue
         beam('Mezzanine gallery balustrade',(x,5.54,front),(x,6.58,front),.044,'#8e938d')
         for y in (5.61,6.44,6.54):
             beam('Mezzanine gallery balustrade',(x,y,front),(x+1.75,y,front),.026,'#a8a99e')
@@ -175,6 +178,7 @@ def build(s):
         s.lathe('Main hall downlights',x,z,[(9.817,.092),(9.833,.114)],'#fff3d5',8)
 
     qibla_wall(s)
+    furnishings.build(s)
 
 
 def qibla_wall(s):

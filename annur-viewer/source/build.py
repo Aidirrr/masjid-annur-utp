@@ -190,6 +190,10 @@ if __name__=='__main__':
     model=arch.glb()
     (DIST/'Masjid-An-Nur-UTP.glb').write_bytes(model)
     viewer=(SRC/'viewer.js').read_text().replace('/* MINIATURES_SCRIPT */',(SRC/'miniatures.js').read_text()+'\n'+(SRC/'birds.js').read_text())
+    for marker, filename in [('COMMUNITY_SCRIPT','community.js'), ('INTERACTION_SCRIPT','interaction.js')]:
+        viewer=viewer.replace('/* '+marker+' */',(SRC/filename).read_text())
+    qr = (SRC.parent.parent/'sedekahje-masjid-an-nur-utp.png').read_bytes()
+    viewer=viewer.replace('__MOSQUE_QR__','data:image/png;base64,'+base64.b64encode(qr).decode())
     page=(SRC/'viewer.html').read_text().replace('/* VIEWER_SCRIPT */',viewer)
     (DIST/'index.html').write_text(page.replace('__ARCH_DATA__',embedded(model)).replace('__LAND_DATA__',embedded(land.glb())))
     print('Wrote GLB and offline viewer.',len(model),'GLB bytes')

@@ -48,56 +48,71 @@ def build_plaza(s):
     # rooms and the inward strip is open, with a continuous shaded walking line.
     # The public ablution bay occupies two structural bays of the service wing.
     # Its court-side entrance is flush with the covered pedestrian gallery.
-    room_min_z,room_max_z=-24.4,-14.0
-    for a,b in ((z0+.62,-32.45),(-27.15,room_min_z)):
+    # Two independent bays flank the central entrance passage; their exact
+    # dimensions are interpretations of the roof bays on the satellite view.
+    for a,b in ((z0+.62,-49.4),(-39,-32.45),(-27.15,-24.4),(-14,z1-.60)):
         slab('Service wing walls',30.15,41.27,a,b,floor,4.32,concrete)
-    slab('Service wing walls',30.15,41.27,room_max_z,z1-.60,floor,4.32,concrete)
-    slab('Service wing walls',41.04,41.27,room_min_z,room_max_z,floor,4.32,concrete)
-    for a,b in ((room_min_z,-20.9),(-17.7,room_max_z)):
-        slab('Service wing walls',30.15,30.37,a,b,floor,4.32,concrete)
-    slab('Wudu entrance lintel',30.15,30.37,-20.9,-17.7,3.72,4.32,concrete)
-    slab('Wudu ceiling',30.37,41.04,room_min_z,room_max_z,4.10,4.22,'#ebe8db')
 
-    # Slip-resistant rectangular floor tiles, pale celadon glazed wall tiles and
-    # a deep green dado make the seated washing line legible from the doorway.
-    wet_floor=1.17
-    surface('Wudu floor grout',30.16,41.04,room_min_z,room_max_z,wet_floor-.006,'#8e9c96')
-    nx,nz=18,17
-    for i in range(nx):
-        a,b=30.16+i*10.88/nx,30.16+(i+1)*10.88/nx
-        for j in range(nz):
-            u,v=room_min_z+j*10.4/nz,room_min_z+(j+1)*10.4/nz
-            col=('#c1c9bc','#c8cdbd','#c6cdbf')[(i*5+j*7)%3]
-            surface('Wudu floor tiles',a+.007,b-.007,u+.007,v-.007,wet_floor,col)
-    wall_tiles=('#b3cfc3','#afc9be','#bdd4c6','#c0d5c8')
-    for j in range(20):
-        u=room_min_z+j*.52+.004;v=u+.512
-        for row in range(4):
-            bottom=wet_floor+row*.36+.004
-            slab('Wash bay glazed tiles',41.016,41.038,u,v,bottom,bottom+.352,
-                 wall_tiles[(j*5+row*3)%4])
-    slab('Wash bay dado',40.999,41.039,room_min_z,room_max_z,2.62,2.71,'#507973')
-    slab('Wudu slotted drain',40.39,40.57,room_min_z+.36,room_max_z-.36,
-         wet_floor,wet_floor+.011,'#536765')
-    for j in range(72):
-        z=room_min_z+.39+j*.132
-        slab('Drain cover slats',40.39,40.57,z,z+.040,wet_floor+.011,wet_floor+.024,'#a5b2ac')
+    def ablution_wing(offset):
+        room_min_z,room_max_z=-24.4+offset,-14.0+offset
+        slab('Service wing walls',41.04,41.27,room_min_z,room_max_z,floor,4.32,concrete)
+        for a,b in ((room_min_z,-20.9+offset),(-17.7+offset,room_max_z)):
+            slab('Service wing walls',30.15,30.37,a,b,floor,4.32,concrete)
+        slab('Wudu entrance lintel',30.15,30.37,-20.9+offset,-17.7+offset,3.72,4.32,concrete)
+        slab('Wudu ceiling',30.37,41.04,room_min_z,room_max_z,4.10,4.22,'#ebe8db')
 
-    # The long channel is interrupted at each seat so the user's feet reach the
-    # sloping, drained wet floor. The concrete seats are fixed to short plinths.
-    for j in range(6):
-        z=-23.18+j*1.60
-        slab('Wudu stool plinths',39.4,39.76,z-.18,z+.18,wet_floor,1.52,'#92aaa1')
-        slab('Wudu fixed seats',39.3,39.86,z-.30,z+.30,1.52,1.64,'#dce0d0')
-        s.beam('Wudu tap fittings',(41.0,1.99,z),(40.73,1.99,z),.037,'#a8b8b7',10)
-        s.beam('Wudu tap fittings',(40.73,1.99,z),(40.68,1.90,z),.042,'#b4c0bf',10)
-        s.beam('Wudu tap fittings',(40.82,2.00,z),(40.82,2.09,z),.023,'#a4b0ac',8)
-        s.beam('Wudu tap fittings',(40.82,2.09,z-.089),(40.82,2.09,z+.089),.018,'#c3cecb',8)
-        # Compact stone footrest on the dry side of the grating.
-        slab('Wudu footrests',40.13,40.33,z-.27,z+.27,wet_floor,1.31,'#a6b3a9')
-    for z in (-22.60,-16.8):
-        for x in (33.1,38.8):
-            s.lathe('Wash bay ceiling lights',x,z,[(4.075,.115),(4.091,.14)],'#f8edce',10)
+        # Slip-resistant rectangular floor tiles, pale celadon glazed wall tiles and
+        # a deep green dado make the seated washing line legible from the doorway.
+        wet_floor=1.17
+        surface('Wudu floor grout',30.16,41.04,room_min_z,room_max_z,wet_floor-.006,'#8e9c96')
+        nx,nz=18,17
+        for i in range(nx):
+            a,b=30.16+i*10.88/nx,30.16+(i+1)*10.88/nx
+            for j in range(nz):
+                u,v=room_min_z+j*10.4/nz,room_min_z+(j+1)*10.4/nz
+                col=('#c1c9bc','#c8cdbd','#c6cdbf')[(i*5+j*7)%3]
+                surface('Wudu floor tiles',a+.007,b-.007,u+.007,v-.007,wet_floor,col)
+        wall_tiles=('#b3cfc3','#afc9be','#bdd4c6','#c0d5c8')
+        for j in range(20):
+            u=room_min_z+j*.52+.004;v=u+.512
+            for row in range(4):
+                bottom=wet_floor+row*.36+.004
+                slab('Wash bay glazed tiles',41.016,41.038,u,v,bottom,bottom+.352,
+                     wall_tiles[(j*5+row*3)%4])
+        slab('Wash bay dado',40.999,41.039,room_min_z,room_max_z,2.62,2.71,'#507973')
+        slab('Wudu slotted drain',40.39,40.57,room_min_z+.36,room_max_z-.36,
+             wet_floor,wet_floor+.011,'#536765')
+        for j in range(72):
+            z=room_min_z+.39+j*.132
+            slab('Drain cover slats',40.39,40.57,z,z+.040,wet_floor+.011,wet_floor+.024,'#a5b2ac')
+
+        # The long channel is interrupted at each seat so the user's feet reach the
+        # sloping, drained wet floor. The concrete seats are fixed to short plinths.
+        for j in range(6):
+            z=-23.18+offset+j*1.60
+            slab('Wudu stool plinths',39.4,39.76,z-.18,z+.18,wet_floor,1.52,'#92aaa1')
+            slab('Wudu fixed seats',39.3,39.86,z-.30,z+.30,1.52,1.64,'#dce0d0')
+            s.beam('Wudu tap fittings',(41.0,1.99,z),(40.73,1.99,z),.037,'#a8b8b7',10)
+            s.beam('Wudu tap fittings',(40.73,1.99,z),(40.68,1.90,z),.042,'#b4c0bf',10)
+            s.beam('Wudu tap fittings',(40.82,2.00,z),(40.82,2.09,z),.023,'#a4b0ac',8)
+            s.beam('Wudu tap fittings',(40.82,2.09,z-.089),(40.82,2.09,z+.089),.018,'#c3cecb',8)
+            # Compact stone footrest on the dry side of the grating.
+            slab('Wudu footrests',40.13,40.33,z-.27,z+.27,wet_floor,1.31,'#a6b3a9')
+        for z in (-22.60+offset,-16.8+offset):
+            for x in (33.1,38.8):
+                s.lathe('Wash bay ceiling lights',x,z,[(4.075,.115),(4.091,.14)],'#f8edce',10)
+
+        slab('Dry wudu threshold',30.14,31.18,-20.9+offset,-17.7+offset,1.15,1.31,'#dfd9c6')
+        slab('Wudu privacy partition wall',32.04,32.17,-21.3+offset,-17.2+offset,1.17,3.42,concrete)
+        for x in (34.0,36.6):
+            z=room_min_z+.39
+            s.lathe('Ceramic wash basins',x,z,[(1.17,.15),(1.80,.14),(1.92,.34),(2.04,.36),(2.04,.29),(1.93,.10)],'#ecece0',16,False)
+            s.beam('Basin tap fittings',(x,2.02,z-.27),(x,2.20,z-.27),.025,'#91a3a2')
+            s.beam('Basin tap fittings',(x,2.20,z-.27),(x,2.20,z-.12),.025,'#91a3a2')
+            slab('Wudu mirror frames',x-.49,x+.49,room_min_z,room_min_z+.06,2.25,3.22,'#899895')
+            slab('Wash bay mirrors',x-.46,x+.46,room_min_z+.06,room_min_z+.065,2.28,3.19,'#aec5c3')
+    ablution_wing(0)
+    ablution_wing(-25)
     for k in range(11):
         z=z0+.77+k*((z1-z0)-1.52)/10
         slab('Gallery piers',27.19,27.56,z-.19,z+.19,floor,4.25,concrete)
@@ -106,7 +121,7 @@ def build_plaza(s):
             continue
         mid=z+2.28
         for x in (30.13,41.29):
-            if x<31.0 and room_min_z<mid<room_max_z and mid-1.51<-17.7 and mid+1.51>-20.9:
+            if x<31.0 and any(mid-1.51<hi and mid+1.51>lo for lo,hi in ((-20.9,-17.7),(-45.9,-42.7))):
                 continue
             if -33.8<mid<-25.8:continue
             outer=1 if x>40 else -1
@@ -185,7 +200,22 @@ def build_plaza(s):
     # The road and paved apron run across the entrance elevation.
     slab('Street forecourt paving',42.27,48.0,-58.3,2.45,.48,1.06,'#bdafa2')
     slab('Street carriageway',48.0,59.5,-59.0,2.45,.45,1.02,'#858789')
+    # Oval drop-off loop on the street side of the portal. The pedestrian
+    # crossing joins the eastern apron and the covered perimeter walkway.
+    for i in range(48):
+        a,b=TAU*i/48,TAU*(i+1)/48
+        def edge(t,rx,rz,y):
+            return (55+rx*math.cos(t),y,mid+rz*math.sin(t))
+        for rx0,rz0,rx1,rz1,h,col,name in [
+                (0,0,2.68,4.85,1.28,'#839568','Drop-off planted island'),
+                (2.68,4.85,2.94,5.11,1.28,'#dfdbcf','Roundabout kerb'),
+                (2.94,5.11,7.02,9.17,1.055,'#838385','Drop-off carriageway')]:
+            s.quad(name,edge(a,rx0,rz0,h),edge(b,rx0,rz0,h),edge(b,rx1,rz1,h),edge(a,rx1,rz1,h),col)
+        s.quad('Roundabout kerb',edge(a,2.94,5.11,1.055),edge(a,2.94,5.11,1.28),edge(b,2.94,5.11,1.28),edge(b,2.94,5.11,1.055),coping)
+    for i in range(5):
+        slab('Pedestrian crossing',48.1+i*.78,48.52+i*.78,mid-1.30,mid+1.30,1.055,1.07,coping)
     for z in range(-56,1,8):
+        if abs(z-mid)<10:continue
         slab('Street lane markings',53.65,53.78,z,z+2.25,1.02,1.035,'#dcd7c2')
     for z in range(-55,2,6):
         if -35.35<z<-24.25:continue

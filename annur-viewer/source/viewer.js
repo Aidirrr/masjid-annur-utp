@@ -95,6 +95,12 @@ function perspective(aspect){
     return [f/aspect,0,0,0,0,f,0,0,0,0,(far+near)/(near-far),-1,0,0,2*far*near/(near-far),0];
 }
 const cameraViews={
+    wuduWomen:{eye:[-34.3,2.8,-47.4],yaw:2.09,pitch:.13,distance:7,target:[-40.3,1.95,-44.2],fov:1.2},
+    muslimat:{eye:[1,7.16,-3],yaw:Math.PI/2,pitch:.27,distance:4,target:[-3,6,-3],fov:1.18},
+    foyer:{yaw:Math.PI,pitch:.08,distance:7,target:[-4.35,2.72,-18.94]},
+    memorial:{yaw:Math.PI,pitch:.15,distance:5,target:[4.8,2.15,-34.7]},
+    cat:{yaw:.4,pitch:.27,distance:4,target:[-28.6,1.7,-21]},
+    meal:{yaw:.6,pitch:.33,distance:8,target:[-25,1.7,-38]},
     lake:{yaw:.68,pitch:.247,scale:1.19,target:[7,7,-8]},
     aerial:{yaw:3.10,pitch:1.36,scale:2.05,target:[1,1,-32]},
     waterside:{yaw:-.80,pitch:-.083,distance:62,target:[1,8,2],eye:[-39.72,2.68,43.5],fov:1.06},
@@ -119,17 +125,19 @@ class WalkingMap {
     constructor(parts){
         this.step=.20;this.x0=-80;this.z0=-95;this.width=800;this.height=750;
         this.floor=new Float32Array(this.width*this.height).fill(-Infinity);
+        this.upper=new Float32Array(this.floor.length).fill(-Infinity);
         this.blocked=new Uint8Array(this.floor.length);
         const floors=/paving|carpet|landing|stair nosings|lake elevation stairs|plaza limestone|plaza lawn|stepped plaza walk|court entrance extension|service colonnade deck|ramp|threshold|wudu.*(tile|floor)|lawns|lakeside walk/i;
         const walls=/envelope|glazing|wall|portal jamb|pier|column|handrail|cistern|lectern|bollard|wudu.*(seat|stool|bench|partition)|qibla marble|street portal|marble ashlar/i;
         for(const part of parts){
-            const ground=floors.test(part.name),wall=walls.test(part.name);
+            const upper=/Muslimat stair treads|Muslimat prayer carpet/i.test(part.name);
+            const ground=upper||floors.test(part.name),wall=walls.test(part.name);
             if(!ground&&!wall)continue;
             const v=new Float32Array(part.vertices.buffer,part.vertices.byteOffset,part.vertices.byteLength/4);
             for(let k=0;k<part.indices.length;k+=3){
                 const a=part.indices[k]*7,b=part.indices[k+1]*7,c=part.indices[k+2]*7;
                 const top=Math.max(v[a+1],v[b+1],v[c+1]),bottom=Math.min(v[a+1],v[b+1],v[c+1]);
-                if(ground&&top<4&&bottom>.01)this.surface(v,a,b,c);
+                if(ground&&(upper||top<4)&&bottom>.01)this.surface(v,a,b,c,upper?this.upper:this.floor);
                 if(wall){
                     const level=/seat|stool|bench/i.test(part.name)?1.46:2.02;
                     if(bottom<level&&top>level)this.wallSlice(v,[a,b,c],level);
@@ -137,7 +145,7 @@ class WalkingMap {
             }
         }
     }
-    surface(v,a,b,c){
+    surface(v,a,b,c,layer){
         const ax=v[a],az=v[a+2],bx=v[b]-ax,bz=v[b+2]-az,cx=v[c]-ax,cz=v[c+2]-az,det=bx*cz-cx*bz;
         if(Math.abs(det)<.00001)return;
         const ix=x=>(x-this.x0)/this.step,iz=z=>(z-this.z0)/this.step;
@@ -148,7 +156,7 @@ class WalkingMap {
             const u=(dx*cz-dz*cx)/det,w=(bx*dz-bz*dx)/det;
             if(u<-.0001||w<-.0001||u+w>1.0001)continue;
             const i=z*this.width+x,y=v[a+1]+u*(v[b+1]-v[a+1])+w*(v[c+1]-v[a+1]);
-            this.floor[i]=Math.max(this.floor[i],y);
+            layer[i]=Math.max(layer[i],y);
         }
     }
     cell(x,z){
@@ -170,57 +178,85 @@ class WalkingMap {
             if(i>=0)this.blocked[i]=1;
         }
     }
-    ground(x,z){
+    ground(x,z,from=0){
         const i=this.cell(x,z);
-        return i<0||this.blocked[i]?-Infinity:this.floor[i];
+        if(i<0)return -Infinity;
+        const high=this.upper[i],low=this.blocked[i]?-Infinity:this.floor[i];
+        if(Number.isFinite(high)&&Math.abs(high-from)<=.46)return high;
+        return Math.abs(high-from)<Math.abs(low-from)?high:low;
     }
     canStep(x,z,from){
         for(const [dx,dz] of [[0,0],[.18,0],[-.18,0],[0,.18],[0,-.18]]){
-            if(Math.abs(this.ground(x+dx,z+dz)-from)>.46)return false;
+            if(Math.abs(this.ground(x+dx,z+dz,from)-from)>.46)return false;
         }
         return true;
     }
 }
 const walkStarts={
+    wuduWomen:[-34.3,-47.4,2.09,.13],muslimat:[1,-3,Math.PI/2,.27],foyer:[-4.35,-21.5,Math.PI,0],memorial:[4.8,-37,Math.PI,0],cat:[-28.6,-24,Math.PI,.25],meal:[-25,-36,0,.20],
     waterside:[-40.8,24,-1.12,-.10],qibla:[0,-1.9,Math.PI,-.09],gallery:[0,9,0,-.23],
     street:[-46.5,-29.8,-Math.PI/2,-.20],roofbirds:[2,-23,Math.PI,-.77],arrivals:[2,-32,Math.PI,0],gathering:[4.4,-.50,2.74,0],
     lake:[0,-29,Math.PI,0],court:[0,-29,Math.PI,0],aerial:[0,-43,Math.PI,0],dome:[0,7,Math.PI,-1.15],
     hall:[1,-1,3.05,-.32],prayer:[3.6,-16.8,2.55,.19],feeding:[8.9,22.1,2.93,.54],
     wudu:[-34.3,-22.4,2.09,.13],halaqah:[-2.25,8.6,.60,.35]
 };
+let playerFloor=0,jumpHeight=0,jumpVelocity=0;
 let walkMap=null,walking=false,lastOrbit='lake';
 const held=new Set();
 function enterAt(id){
-    const [x,z,yaw,pitch]=walkStarts[id]||walkStarts.lake;
-    camera={eye:[x,walkMap.ground(x,z)+1.62,z],yaw,pitch,distance:3,fov:1.25,target:[x,2,z]};
+    let [x,z,yaw,pitch]=walkStarts[id]||walkStarts.lake;
+    const desired=id==='muslimat'?5.54:1.5;
+    let floor=walkMap.ground(x,z,desired);
+    if(!Number.isFinite(floor)){
+        // Snap preset starts to the nearest supported tile at thin walls and steps.
+        for(let r=.25;r<=8&&!Number.isFinite(floor);r+=.25){
+            for(let i=0;i<24;i++){
+                const xx=x+r*Math.cos(i*TAU/24),zz=z+r*Math.sin(i*TAU/24);
+                floor=walkMap.ground(xx,zz,desired);
+                if(Number.isFinite(floor)){x=xx;z=zz;break;}
+            }
+        }
+    }
+    if(!Number.isFinite(floor)){setWalking(false);return;}
+    playerFloor=floor;jumpHeight=0;jumpVelocity=0;
+    camera={eye:[x,floor+1.62,z],yaw,pitch,distance:3,fov:1.25,target:[x,2,z]};
     transition=null;dirty=true;preset.value=id;held.clear();
 }
 function setWalking(on){
     if(!walkMap){$('walk').checked=false;return;}
     if(on===walking)return;
-    followFriday=false;walking=on;held.clear();lastOrbitTime=null;rotateControl.disabled=on;
+    resetStick();followFriday=false;walking=on;held.clear();lastOrbitTime=null;rotateControl.disabled=on;
     $('walk').checked=on;$('walkPad').hidden=!on;
     $('walkHint').hidden=!on;
     if(on){lastOrbit=cameraViews[preset.value]?preset.value:'lake';enterAt(lastOrbit);}
     else chooseView(lastOrbit,false);
     canvas.focus({preventScroll:true});
 }
+function jump(){
+    if(walking&&jumpHeight===0&&jumpVelocity===0)jumpVelocity=3.8;
+}
 function walkStep(dt){
-    const ahead=Number(held.has('w')||held.has('arrowup'))-Number(held.has('s')||held.has('arrowdown'));
-    const side=Number(held.has('d'))-Number(held.has('a'));
+    if(jumpVelocity||jumpHeight){
+        jumpHeight=Math.max(0,jumpHeight+jumpVelocity*dt-5*dt*dt);
+        jumpVelocity=jumpHeight?jumpVelocity-10*dt:0;
+        camera.eye[1]=playerFloor+1.62+jumpHeight;dirty=true;
+    }
+    const ahead=stickInput.forward+Number(held.has('w')||held.has('arrowup'))-Number(held.has('s')||held.has('arrowdown'));
+    const side=stickInput.side+Number(held.has('d'))-Number(held.has('a'));
     const turn=Number(held.has('arrowleft'))-Number(held.has('arrowright'));
     if(turn){camera.yaw+=turn*dt*1.65;dirty=true;}
     if(!ahead&&!side)return;
     const speed=held.has('shift')||$('fast').checked?10:5;
-    const step=speed*dt/Math.hypot(ahead,side),eye=camera.eye,cs=Math.cos(camera.yaw),sn=Math.sin(camera.yaw);
+    const step=speed*dt/Math.max(1,Math.hypot(ahead,side)),eye=camera.eye,cs=Math.cos(camera.yaw),sn=Math.sin(camera.yaw);
     const dx=(side*cs-ahead*sn)*step,dz=(-side*sn-ahead*cs)*step;
     // Sample along fast strides so a long frame cannot skip a thin wall.
     const n=Math.ceil(Math.hypot(dx,dz)/.12);
     for(let i=0;i<n;i++){
-        if(walkMap.canStep(eye[0]+dx/n,eye[2],walkMap.ground(eye[0],eye[2])))eye[0]+=dx/n;
-        if(walkMap.canStep(eye[0],eye[2]+dz/n,walkMap.ground(eye[0],eye[2])))eye[2]+=dz/n;
+        if(walkMap.canStep(eye[0]+dx/n,eye[2],playerFloor))eye[0]+=dx/n;
+        if(walkMap.canStep(eye[0],eye[2]+dz/n,playerFloor))eye[2]+=dz/n;
+        playerFloor=walkMap.ground(eye[0],eye[2],playerFloor);
     }
-    eye[1]=walkMap.ground(eye[0],eye[2])+1.62;dirty=true;
+    eye[1]=playerFloor+1.62+jumpHeight;dirty=true;
 }
 
 function fitDistance(){return Math.max(51,91/Math.max(.38,canvas.clientWidth/Math.max(1,canvas.clientHeight)))/(2*Math.tan(fov/2))}
@@ -267,7 +303,7 @@ async function parseModel(data){
         const coords=doc.accessors[p.attributes.TEXCOORD_0];
         const uv=coords?new Float32Array(data,start+doc.bufferViews[coords.bufferView].byteOffset,2*coords.count):null;
         const image=m.baseColorTexture?images[doc.textures[m.baseColorTexture.index].source]:null;
-        return {name:mesh.name,uv,image,vertices:new Uint8Array(data,start+b.byteOffset,b.byteLength),
+        return {name:mesh.name,action:meshAction(mesh.name),min:a.min,max:a.max,uv,image,vertices:new Uint8Array(data,start+b.byteOffset,b.byteLength),
             indices:i.componentType===5125?new Uint32Array(data,start+idx.byteOffset,i.count):new Uint16Array(data,start+idx.byteOffset,i.count),
             roughness:m.roughnessFactor,metal:m.metallicFactor};
     });
@@ -442,6 +478,8 @@ const depthFS=`#version 300 es
 precision highp float;void main(){}`;
 
 /* MINIATURES_SCRIPT */
+/* COMMUNITY_SCRIPT */
+/* INTERACTION_SCRIPT */
 
 class WebGLScene{
     constructor(gl,parts){
@@ -769,6 +807,8 @@ function updateLife(t){
         const index=clock<14?0:clock<30?1:clock<60?2:3;
         if(index!==fridayPhase){fridayPhase=index;$('phase').value=String(index);}
     }
+    const hour=(new Date().getUTCHours()+8)%24;
+    miniatures.afternoon=lightingMode==='sunset'||(lightingMode==='live'&&hour>=16&&hour<19);
     miniatures.update(t);birds.update(t);
 }
 function tossFood(){
@@ -781,8 +821,26 @@ function tossFood(){
     $('feed').textContent='Food tossed';
     canvas.focus({preventScroll:true});
 }
-$('feed').onclick=tossFood;
-$('activity').onchange=e=>setFriday(e.target.value==='friday');
+$('feed').onclick=()=>openCommunity('feed');
+let mealStart=0,mealPhase=-1,mealLight=null,petUntil=-1;
+function updateMeal(){
+    miniatures.thursdayTime=(sceneSeconds-mealStart+48)%48;
+    const phase=miniatures.thursdayTime<24?0:1;
+    if(phase===mealPhase)return;
+    mealPhase=phase;$('mealPhase').value=String(phase);
+    const light=phase?'night':'sunset';
+    $('lighting').value=light;setLighting(light);
+    chooseView(phase?'halaqah':'meal',false);
+}
+$('activity').onchange=e=>{
+    if(mealLight){setLighting(mealLight);$('lighting').value=mealLight;mealLight=null;}
+    setFriday(e.target.value==='friday');
+    miniatures.thursday=e.target.value==='thursday';
+    $('mealControls').hidden=!miniatures.thursday;
+    if(miniatures.thursday){mealLight=lightingMode;mealPhase=-1;mealStart=sceneSeconds;updateMeal();}
+    dirty=true;
+};
+$('mealPhase').onchange=e=>{mealStart=sceneSeconds-Number(e.target.value)*24;updateMeal();};
 $('phase').onchange=e=>{
     const index=Number(e.target.value);
     fridayStart=sceneSeconds-phases[index].start;fridayPhase=-1;
@@ -796,10 +854,12 @@ document.addEventListener('visibilitychange',()=>{lastOrbitTime=null;previousFra
 function frame(time){
     if(!renderer)return;
     if(document.hidden){previousFrame=null;requestAnimationFrame(frame);return;}
-    const animate=!reducedMotion.matches||miniatures.friday||sceneSeconds-lastCast<4;
+    const animate=!reducedMotion.matches||miniatures.friday||miniatures.thursday||sceneSeconds<petUntil||sceneSeconds-lastCast<4;
     if(previousFrame!==null && animate)sceneSeconds+=Math.min(time-previousFrame,500)*.001;
     if(walking&&previousFrame!==null)walkStep(clamp((time-previousFrame)/1000,0,.25));
     previousFrame=time;
+    if(miniatures.thursday)updateMeal();
+    updateNearby();
     if(lastCast>-99 && sceneSeconds-lastCast>1.15 && $('feed').textContent!=='Feed fish')$('feed').textContent='Feed fish';
     if(followFriday && miniatures.friday){
         const t=(sceneSeconds-fridayStart+100)%100;
@@ -858,14 +918,16 @@ canvas.addEventListener('keydown',e=>{
     if(walking && ['w','a','s','d','shift','arrowleft','arrowright','arrowup','arrowdown'].includes(e.key.toLowerCase())){
         held.add(e.key.toLowerCase());e.preventDefault();return;
     }
+    if(walking && e.code==='Space'){if(!e.repeat)jump();e.preventDefault();return;}
     if(walking && e.key==='Escape'){setWalking(false);return;}
-    if(e.key.toLowerCase()==='f'&&!e.repeat){tossFood();e.preventDefault();return;}
+    if(e.key.toLowerCase()==='f'&&!e.repeat){openCommunity('feed');e.preventDefault();return;}
     const actions={'+':()=>zoom(.84),'=':()=>zoom(.84),'-':()=>zoom(1/.84),ArrowLeft:()=>orbit(-.1,0),ArrowRight:()=>orbit(.1,0),ArrowUp:()=>orbit(0,.07),ArrowDown:()=>orbit(0,-.07),Home:()=>chooseView('lake')};
     if(actions[e.key]){e.preventDefault();actions[e.key]()}
 });
 $('in').onclick=()=>zoom(.8);$('out').onclick=()=>zoom(1.25);$('reset').onclick=()=>{followFriday=false;chooseView('lake');};
 preset.onchange=()=>{followFriday=false;if(cameraViews[preset.value])chooseView(preset.value);if(walking)canvas.focus({preventScroll:true});};
 $('walk').onchange=e=>setWalking(e.target.checked);
+$('jump').onclick=jump;
 $('fast').onchange=()=>canvas.focus({preventScroll:true});
 canvas.addEventListener('keyup',e=>held.delete(e.key.toLowerCase()));
 canvas.addEventListener('blur',()=>held.clear());
@@ -898,14 +960,15 @@ canvas.addEventListener('webglcontextrestored',()=>location.reload());
         const initView=params.get('preset')||params.get('view')||'lake';
         setLighting(initLight);
         if($('lighting'))$('lighting').value=initLight;
-        chooseView(initView,false);
-        if(preset)preset.value=initView;
+        chooseView(cameraViews[initView]?initView:'lake',false);
+
         const [arch,land]=await Promise.all([unpack('arch'),unpack('land')]);modelBytes=arch;
         const parts=(await Promise.all([parseModel(arch),parseModel(land)])).flat().filter(part=>part.name!=='Paving joints');
-        walkMap=new WalkingMap(parts);miniatures=new MiniatureScene();birds=new MosqueBirds();
+        pickParts=parts;walkMap=new WalkingMap(parts);miniatures=new MiniatureScene();birds=new MosqueBirds();
         const gl=canvas.getContext('webgl2',{alpha:false,antialias:true,powerPreference:'high-performance'});
         renderer=gl?new WebGLScene(gl,parts):new SoftwareScene(canvas.getContext('2d',{alpha:false}),parts);
-        $('activity').disabled=false;$('feed').disabled=false;
+        $('activity').disabled=false;$('explore').disabled=false;
+        if(matchMedia('(pointer:coarse)').matches&&!params.has('clean')&&!params.has('view')&&!params.has('preset')&&!params.has('scene'))setWalking(true);$('feed').disabled=false;
         const sceneParam=params.get('scene');
         if(sceneParam&&$('activity')){$('activity').value=sceneParam;$('activity').dispatchEvent(new Event('change'));}
         const phaseParam=params.get('phase');
