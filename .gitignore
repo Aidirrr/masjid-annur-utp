@@ -4,5 +4,4 @@ __pycache__/
 .netlify
 
 # Generated build output (rebuilt via: python3 annur-viewer/source/build.py)
-annur-viewer/dist/Masjid-An-Nur-UTP.glb
-annur-viewer/dist/index.html
+annur-viewer/dist/
