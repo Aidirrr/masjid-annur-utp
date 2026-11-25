@@ -99,6 +99,9 @@ const cameraViews={
     muslimat:{eye:[1,7.16,-3],yaw:Math.PI/2,pitch:.27,distance:4,target:[-3,6,-3],fov:1.18},
     foyer:{yaw:Math.PI,pitch:.08,distance:7,target:[-4.35,2.72,-18.94]},
     memorial:{yaw:Math.PI,pitch:.15,distance:5,target:[4.8,2.15,-34.7]},
+    clock:{eye:[-8.3,2.95,8],yaw:Math.PI/2,pitch:-.04,distance:4,target:[-12.2,3.1,8],fov:1.0},
+    names:{eye:[7.1,3,9.5],yaw:-Math.PI/2,pitch:-.02,distance:5,target:[12.2,3.12,9.5],fov:1.0},
+    shelf:{eye:[8.8,2.85,-1.4],yaw:0,pitch:.18,distance:3,target:[8.8,2.4,-4.2],fov:1.1},
     cat:{yaw:.4,pitch:.27,distance:4,target:[-28.6,1.7,-21]},
     meal:{yaw:.6,pitch:.33,distance:8,target:[-25,1.7,-38]},
     lake:{yaw:.68,pitch:.247,scale:1.19,target:[7,7,-8]},
@@ -203,6 +206,7 @@ class WalkingMap {
     }
 }
 const walkStarts={
+    clock:[-8.7,8,Math.PI/2,0],names:[8.6,9.5,-Math.PI/2,0],shelf:[8.8,-1.4,0,.18],
     wuduWomen:[-34.3,-47.4,2.09,.13],muslimat:[1,-3,Math.PI/2,.27],foyer:[-4.35,-21.5,Math.PI,0],memorial:[4.8,-37,Math.PI,0],cat:[-28.6,-24,Math.PI,.25],meal:[-25,-36,0,.20],
     waterside:[-40.8,24,-1.12,-.10],qibla:[0,-1.9,Math.PI,-.09],gallery:[0,9,0,-.23],
     street:[-46.5,-29.8,-Math.PI/2,-.20],roofbirds:[2,-23,Math.PI,-.77],arrivals:[2,-32,Math.PI,0],gathering:[4.4,-.50,2.74,0],
@@ -509,7 +513,7 @@ class WebGLScene{
                 const coords=gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER,coords);gl.bufferData(gl.ARRAY_BUFFER,p.uv,gl.STATIC_DRAW);
                 gl.enableVertexAttribArray(3);gl.vertexAttribPointer(3,2,gl.FLOAT,false,0,0);
-                texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);
+                texture=gl.createTexture();if(p.name==='Prayer clock face')this.clockTexture=texture;gl.bindTexture(gl.TEXTURE_2D,texture);
                 gl.texImage2D(gl.TEXTURE_2D,0,gl.SRGB8_ALPHA8,gl.RGBA,gl.UNSIGNED_BYTE,p.image);
                 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
@@ -537,6 +541,12 @@ class WebGLScene{
         gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.TEXTURE_2D,this.shadow,0);gl.drawBuffers([gl.NONE]);gl.readBuffer(gl.NONE);
         this.checkFramebuffer();this.updateShadows();
         this.reflectFbo=gl.createFramebuffer();this.refTex=gl.createTexture();this.refDepth=gl.createRenderbuffer();
+    }
+    setClockFace(face){
+        const g=this.gl;
+        g.bindTexture(g.TEXTURE_2D,this.clockTexture);
+        g.texImage2D(g.TEXTURE_2D,0,g.SRGB8_ALPHA8,g.RGBA,g.UNSIGNED_BYTE,face);
+        g.generateMipmap(g.TEXTURE_2D);
     }
     updateShadows(){
         const gl=this.gl;
@@ -652,6 +662,10 @@ class SoftwareScene {
         this.parts=parts.filter(p=>p.name!=='Clear architectural glazing').map(p=>prepare(p,false));
         this.moving=[...miniatures.parts,birds.part].map(p=>prepare(p,true));
         this.still=true;
+    }
+    setClockFace(face){
+        const part=this.parts.find(p=>p.name==='Prayer clock face');
+        part.pixels=face.getContext('2d').getImageData(0,0,face.width,face.height);
     }
     simplifyTrees(p){
         // At this rendering resolution a cluster of leaves needs one surface.
@@ -991,6 +1005,7 @@ canvas.addEventListener('webglcontextrestored',()=>location.reload());
         pickParts=parts;walkMap=new WalkingMap(parts);miniatures=new MiniatureScene();birds=new MosqueBirds();
         const gl=canvas.getContext('webgl2',{alpha:false,antialias:true,powerPreference:'high-performance'});
         renderer=gl?new WebGLScene(gl,parts):new SoftwareScene(canvas.getContext('2d',{alpha:false}),parts);
+        openCommunity.startClock();
         $('activity').disabled=false;$('explore').disabled=false;
         if(matchMedia('(pointer:coarse)').matches&&!params.has('clean')&&!params.has('view')&&!params.has('preset')&&!params.has('scene'))setWalking(true);$('feed').disabled=false;
         const sceneParam=params.get('scene');

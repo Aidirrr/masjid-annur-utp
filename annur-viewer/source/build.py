@@ -1,6 +1,8 @@
 """Build a standard, colour-managed glTF model and an offline viewer."""
 import base64
 import gzip
+import hashlib
+from datetime import datetime, timezone
 import json
 import math
 import struct
@@ -195,10 +197,16 @@ if __name__=='__main__':
     qr = (SRC.parent.parent/'sedekahje-masjid-an-nur-utp.png').read_bytes()
     viewer=viewer.replace('__MOSQUE_QR__','data:image/png;base64,'+base64.b64encode(qr).decode())
     page=(SRC/'viewer.html').read_text().replace('/* VIEWER_SCRIPT */',viewer)
-    for marker,file,mime in [('__MASJID_LOGO__','masjid-logo.png','image/png'),('__ATHAN__','athan.mp3','audio/mpeg'),('__MEOW__','meow.mp3','audio/mpeg')]:
+    page=page.replace('__NAMES_DATA__',(SRC/'names.json').read_text())
+    page=page.replace('__QURAN_DATA__',(SRC/'quran.txt').read_text())
+    page=page.replace('__FONT_LICENSE__',(SRC/'materials'/'naskh-license.txt').read_text())
+    for marker,file,mime in [('__NASKH__','naskh.ttf','font/ttf'),('__MASJID_LOGO__','masjid-logo.png','image/png'),('__ATHAN__','athan.mp3','audio/mpeg'),('__MEOW__','meow.mp3','audio/mpeg')]:
         encoded=base64.b64encode((SRC/'materials'/file).read_bytes()).decode()
         page=page.replace(marker,'data:'+mime+';base64,'+encoded)
     (DIST/'manifest.webmanifest').write_bytes((SRC/'manifest.webmanifest').read_bytes())
     (DIST/'app-icon.png').write_bytes((SRC/'materials'/'app-icon.png').read_bytes())
-    (DIST/'index.html').write_text(page.replace('__ARCH_DATA__',embedded(model)).replace('__LAND_DATA__',embedded(land.glb())))
+    page=page.replace('__ARCH_DATA__',embedded(model)).replace('__LAND_DATA__',embedded(land.glb()))
+    version=hashlib.sha256(page.encode()).hexdigest()[:12]
+    page=page.replace('__MODEL_VERSION__',version).replace('__BUILD_TIME__',datetime.now(timezone.utc).isoformat(timespec='seconds'))
+    (DIST/'index.html').write_text(page)
     print('Wrote GLB and offline viewer.',len(model),'GLB bytes')

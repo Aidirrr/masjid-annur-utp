@@ -1,0 +1,497 @@
+[
+ [
+  "الرَّحْمَنُ",
+  "Ar Rahmaan",
+  "The Beneficent"
+ ],
+ [
+  "الرَّحِيمُ",
+  "Ar Raheem",
+  "The Merciful"
+ ],
+ [
+  "الْمَلِكُ",
+  "Al Malik",
+  "The King / Eternal Lord"
+ ],
+ [
+  "الْقُدُّوسُ",
+  "Al Quddus",
+  "The Purest"
+ ],
+ [
+  "السَّلاَمُ",
+  "As Salaam",
+  "The Source of Peace"
+ ],
+ [
+  "الْمُؤْمِنُ",
+  "Al Mu'min",
+  "The inspirer of faith"
+ ],
+ [
+  "الْمُهَيْمِنُ",
+  "Al Muhaymin",
+  "The Guardian"
+ ],
+ [
+  "الْعَزِيزُ",
+  "Al Azeez",
+  "The Precious / The Most Mighty"
+ ],
+ [
+  "الْجَبَّارُ",
+  "Al Jabbaar",
+  "The Compeller"
+ ],
+ [
+  "الْمُتَكَبِّرُ",
+  "Al Mutakabbir",
+  "The Greatest"
+ ],
+ [
+  "الْخَالِقُ",
+  "Al Khaaliq",
+  "The Creator"
+ ],
+ [
+  "الْبَارِئُ",
+  "Al Baari",
+  "The Maker of Order"
+ ],
+ [
+  "الْمُصَوِّرُ",
+  "Al Musawwir",
+  "The Shaper of Beauty"
+ ],
+ [
+  "الْغَفَّارُ",
+  "Al Ghaffaar",
+  "The Forgiving"
+ ],
+ [
+  "الْقَهَّارُ",
+  "Al Qahhaar",
+  "The Subduer"
+ ],
+ [
+  "الْوَهَّابُ",
+  "Al Wahhaab",
+  "The Giver of All"
+ ],
+ [
+  "الرَّزَّاقُ",
+  "Ar Razzaaq",
+  "The Sustainer"
+ ],
+ [
+  "الْفَتَّاحُ",
+  "Al Fattaah",
+  "The Opener"
+ ],
+ [
+  "اَلْعَلِيْمُ",
+  "Al 'Aleem",
+  "The Knower of all"
+ ],
+ [
+  "الْقَابِضُ",
+  "Al Qaabid",
+  "The Constrictor"
+ ],
+ [
+  "الْبَاسِطُ",
+  "Al Baasit",
+  "The Reliever"
+ ],
+ [
+  "الْخَافِضُ",
+  "Al Khaafid",
+  "The Abaser"
+ ],
+ [
+  "الرَّافِعُ",
+  "Ar Raafi'",
+  "The Exalter"
+ ],
+ [
+  "الْمُعِزُّ",
+  "Al Mu'iz",
+  "The Bestower of Honour"
+ ],
+ [
+  "المُذِلُّ",
+  "Al Mudhil",
+  "The Humiliator"
+ ],
+ [
+  "السَّمِيعُ",
+  "As Samee'",
+  "The Hearer of all"
+ ],
+ [
+  "الْبَصِيرُ",
+  "Al Baseer",
+  "The Seer of all"
+ ],
+ [
+  "الْحَكَمُ",
+  "Al Hakam",
+  "The Judge"
+ ],
+ [
+  "الْعَدْلُ",
+  "Al 'Adl",
+  "The Just"
+ ],
+ [
+  "اللَّطِيفُ",
+  "Al Lateef",
+  "The Subtle One"
+ ],
+ [
+  "الْخَبِيرُ",
+  "Al Khabeer",
+  "The All Aware"
+ ],
+ [
+  "الْحَلِيمُ",
+  "Al Haleem",
+  "The Forebearing"
+ ],
+ [
+  "الْعَظِيمُ",
+  "Al 'Azeem",
+  "The Maginificent"
+ ],
+ [
+  "الْغَفُورُ",
+  "Al Ghafoor",
+  "The Great Forgiver"
+ ],
+ [
+  "الشَّكُورُ",
+  "Ash Shakoor",
+  "The Rewarder of Thankfulness"
+ ],
+ [
+  "الْعَلِيُّ",
+  "Al 'Aliyy",
+  "The Highest"
+ ],
+ [
+  "الْكَبِيرُ",
+  "Al Kabeer",
+  "The Greatest"
+ ],
+ [
+  "الْحَفِيظُ",
+  "Al Hafeez",
+  "The Preserver"
+ ],
+ [
+  "المُقيِت",
+  "Al Muqeet",
+  "The Nourisher"
+ ],
+ [
+  "الْحسِيبُ",
+  "Al Haseeb",
+  "The Reckoner"
+ ],
+ [
+  "الْجَلِيلُ",
+  "Al Jaleel",
+  "The Majestic"
+ ],
+ [
+  "الْكَرِيمُ",
+  "Al Kareem",
+  "The Generous"
+ ],
+ [
+  "الرَّقِيبُ",
+  "Ar Raqeeb",
+  "The Watchful One"
+ ],
+ [
+  "الْمُجِيبُ",
+  "Al Mujeeb ",
+  "The Responder to Prayer"
+ ],
+ [
+  "الْوَاسِعُ",
+  "Al Waasi'",
+  "The All Comprehending"
+ ],
+ [
+  "الْحَكِيمُ",
+  "Al Hakeem",
+  "The Perfectly Wise"
+ ],
+ [
+  "الْوَدُودُ",
+  "Al Wudood",
+  "The Loving One"
+ ],
+ [
+  "الْمَجِيدُ",
+  "Al Majeed",
+  "The Most Glorious One"
+ ],
+ [
+  "الْبَاعِثُ",
+  "Al Baa'ith",
+  "The Resurrector"
+ ],
+ [
+  "الشَّهِيدُ",
+  "Ash Shaheed",
+  "The Witness"
+ ],
+ [
+  "الْحَقُّ",
+  "Al Haqq",
+  "The Truth"
+ ],
+ [
+  "الْوَكِيلُ",
+  "Al Wakeel",
+  "The Trustee"
+ ],
+ [
+  "الْقَوِيُّ",
+  "Al Qawiyy",
+  "The Possessor of all strength"
+ ],
+ [
+  "الْمَتِينُ",
+  "Al Mateen",
+  "The Forceful"
+ ],
+ [
+  "الْوَلِيُّ",
+  "Al Waliyy",
+  "The Protector"
+ ],
+ [
+  "الْحَمِيدُ",
+  "Al Hameed",
+  "The Praised"
+ ],
+ [
+  "الْمُحْصِي",
+  "Al Muhsi",
+  "The Appraiser"
+ ],
+ [
+  "الْمُبْدِئُ",
+  "Al Mubdi",
+  "The Originator"
+ ],
+ [
+  "الْمُعِيدُ",
+  "Al Mu'eed",
+  "The Restorer"
+ ],
+ [
+  "الْمُحْيِي",
+  "Al Muhiy",
+  "The Giver of life"
+ ],
+ [
+  "اَلْمُمِيتُ",
+  "Al Mumeet",
+  "The Taker of life"
+ ],
+ [
+  "الْحَيُّ",
+  "Al Haiyy",
+  "The Ever Living"
+ ],
+ [
+  "الْقَيُّومُ",
+  "Al Qayyoom",
+  "The Self Existing"
+ ],
+ [
+  "الْوَاجِدُ",
+  "Al Waajid",
+  "The Finder"
+ ],
+ [
+  "الْمَاجِدُ",
+  "Al Maajid",
+  "The Glorious"
+ ],
+ [
+  "الْواحِدُ",
+  "Al Waahid",
+  "The Only One"
+ ],
+ [
+  "اَلاَحَدُ",
+  "Al Ahad",
+  "The One"
+ ],
+ [
+  "الصَّمَدُ",
+  "As Samad",
+  "The Supreme Provider"
+ ],
+ [
+  "الْقَادِرُ",
+  "Al Qaadir",
+  "The Powerful"
+ ],
+ [
+  "الْمُقْتَدِرُ",
+  "Al Muqtadir",
+  "The Creator of all power"
+ ],
+ [
+  "الْمُقَدِّمُ",
+  "Al Muqaddim",
+  "The Expediter"
+ ],
+ [
+  "الْمُؤَخِّرُ",
+  "Al Mu’akhir",
+  "The Delayer"
+ ],
+ [
+  "الأوَّلُ",
+  "Al Awwal",
+  "The First"
+ ],
+ [
+  "الآخِرُ",
+  "Al Aakhir",
+  "The Last"
+ ],
+ [
+  "الظَّاهِرُ",
+  "Az Zaahir",
+  "The Manifest"
+ ],
+ [
+  "الْبَاطِنُ",
+  "Al Baatin",
+  "The Hidden"
+ ],
+ [
+  "الْوَالِي",
+  "Al Waali",
+  "The Governor"
+ ],
+ [
+  "الْمُتَعَالِي",
+  "Al Muta’ali",
+  "The Supreme One"
+ ],
+ [
+  "الْبَرُّ",
+  "Al Barr",
+  "The Doer of Good"
+ ],
+ [
+  "التَّوَابُ",
+  "At Tawwaab",
+  "The Guide to Repentence"
+ ],
+ [
+  "الْمُنْتَقِمُ",
+  "Al Muntaqim",
+  "The Avenger"
+ ],
+ [
+  "العَفُوُّ",
+  "Al Afuww",
+  "The Forgiver"
+ ],
+ [
+  "الرَّؤُوفُ",
+  "Ar Ra’oof",
+  "The Clement"
+ ],
+ [
+  "مَالِكُ الْمُلْكِ",
+  "Maalik Ul Mulk",
+  "The Owner / Soverign of All"
+ ],
+ [
+  "ذُوالْجَلاَلِ وَالإكْرَامِ",
+  "Dhu Al Jalaali Wa Al Ikraam",
+  "Possessor of Majesty and Bounty"
+ ],
+ [
+  "الْمُقْسِطُ",
+  "Al Muqsit",
+  "The Equitable One"
+ ],
+ [
+  "الْجَامِعُ",
+  "Al Jaami'",
+  "The Gatherer"
+ ],
+ [
+  "الْغَنِيُّ",
+  "Al Ghaniyy",
+  "The Rich One"
+ ],
+ [
+  "الْمُغْنِي",
+  "Al Mughi",
+  "The Enricher"
+ ],
+ [
+  "اَلْمَانِعُ",
+  "Al Maani'",
+  "The Preventer of harm"
+ ],
+ [
+  "الضَّارَّ",
+  "Ad Daaarr",
+  "The Creator of the harmful"
+ ],
+ [
+  "النَّافِعُ",
+  "An Naafi’",
+  "The Bestower of Benefits"
+ ],
+ [
+  "النُّورُ",
+  "An Noor",
+  "The Light"
+ ],
+ [
+  "الْهَادِي",
+  "Al Haadi",
+  "The Guider"
+ ],
+ [
+  "الْبَدِيعُ",
+  "Al Badi'",
+  "The Originator"
+ ],
+ [
+  "اَلْبَاقِي",
+  "Al Baaqi",
+  "The Everlasting One"
+ ],
+ [
+  "الْوَارِثُ",
+  "Al Waarith",
+  "The Inhertior"
+ ],
+ [
+  "الرَّشِيدُ",
+  "Ar Rasheed",
+  "The Most Righteous Guide"
+ ],
+ [
+  "الصَّبُورُ",
+  "As Saboor",
+  "The Patient One"
+ ]
+]

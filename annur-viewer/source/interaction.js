@@ -6,6 +6,10 @@ const destinations=[
     {key:'board',label:'Read noticeboard',point:[-4.35,2.72,-18.94]},
     {key:'founders',label:'Read plaque',point:[4.8,2.15,-34.7]},
     {key:'ayah',label:'Read ayah',point:[0,3,15]},
+    {key:'clock',label:'Read prayer clock',point:[-12.17,3.12,8]},
+    {key:'names',label:'Explore the 99 Names',point:[12.17,3.12,9.5]},
+    {key:'shelf',label:'Qur’an shelf',point:[8.8,2.55,-4.15]},
+    {key:'shelf',label:'Qur’an shelf',point:[-8.8,2.55,-4.15]},
     {key:'cat',label:'Pet cat'}
 ];
 let nearestAction=null,pickParts=[];
@@ -39,15 +43,21 @@ function updateNearby(){
     $('nearby').classList.toggle('tabung-action',nearest?.key==='donate');
     if(nearest)$('nearby').textContent=nearest.label;
 }
+let catFeedbackTimer;
 function interact(key){
     if(key==='cat'){
-        worldAudio.meow();miniatures.petCat(sceneSeconds);petUntil=sceneSeconds+4;dirty=true;
+        const reaction=miniatures.petCat(sceneSeconds,pose().eye);
+        if(!reaction)return;
+        worldAudio.meow();petUntil=sceneSeconds+6;dirty=true;
+        $('catReaction').textContent=reaction;
+        clearTimeout(catFeedbackTimer);
+        catFeedbackTimer=setTimeout(()=>{$('catReaction').textContent='';},2200);
     }else openCommunity(key);
 }
 $('nearby').onclick=()=>{if(nearestAction)interact(nearestAction.key);};
 $('explore').onchange=e=>{
     const key=e.target.value;e.target.value='';
-    const stop={donate:'foyer',board:'foyer',founders:'memorial',ayah:'qibla',cat:'cat'}[key];
+    const stop={shelf:'shelf',clock:'clock',names:'names',donate:'foyer',board:'foyer',founders:'memorial',ayah:'qibla',cat:'cat'}[key];
     if(stop)followFriday=false;
     if(key==='cat'&&walking)setWalking(false);
     if(stop)chooseView(stop,false);
@@ -109,6 +119,10 @@ document.addEventListener('visibilitychange',resetStick);
 // Test only meshes whose bounding boxes intersect the tap ray. The nearest
 // opaque triangle wins, including unselectable walls in front of a hotspot.
 function meshAction(name){
+    if(name.startsWith('Prayer clock'))return 'clock';
+    if(name.startsWith('Asma ul-Husna'))return 'names';
+    if(name.startsWith('Ayat reading panel'))return 'ayah-kursi';
+    if(/^(Bookcase|Shelved books)/.test(name))return 'shelf';
     if(/^(Foyer|Terrace) tabung/i.test(name))return 'donate';
     if(/^RMUTP board/i.test(name))return 'board';
     if(/^Contributors plaque/i.test(name))return 'founders';
@@ -161,6 +175,13 @@ function pickAt(x,y){
     if(cat){
         const offset=cat.map((v,i)=>v-p.eye[i]),along=dot(offset,ray);
         if(along>0&&Math.hypot(...offset.map((v,i)=>v-along*ray[i]))<.46){closest=along;key='cat';}
+    }
+    if(miniatures.bookPlaced){
+        const offset=[8.65*miniatures.readingSide,1.8,-3.25].map((v,i)=>v-p.eye[i]);
+        const along=dot(offset,ray);
+        if(along>0&&along<closest&&Math.hypot(...offset.map((v,i)=>v-along*ray[i]))<.32){
+            closest=along;key='shelf';
+        }
     }
     if(!hasStaticTarget()&&!Number.isFinite(closest))return;
     function hasStaticTarget(){

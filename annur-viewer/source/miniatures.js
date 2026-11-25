@@ -128,6 +128,7 @@ class MiniatureScene {
             {body:this.person('#7a8b9f','#545967','#68778c','#aa7054','#454342'),x:-2.97,z:6.26}
         ];
         this.rehal=this.openBookOnStand();
+        this.readingStand=this.openBookOnStand();
         this.washers=[
             {z:-21.58,body:this.person('#7596a5','#56685e','#849079','#b87e5e','#343635',this.people,true)},
             {z:-16.78,body:this.person('#cab998','#68777a','#85775e','#a77555','#403a34',this.people,true)}
@@ -144,7 +145,7 @@ class MiniatureScene {
         this.nextHandful=0;
         this.lastThrow=-Infinity;
         this.spray=Array.from({length:12},()=>this.lake.oval(.024,.024,'#d2ece4',.06,5));
-        this.school=Array.from({length:15},(_,i)=>this.fish(i));
+        this.school=Array.from({length:25},(_,i)=>this.fish(i));
         // hip height/advance, knee and ankle in the sagittal plane, torso
         // angle, head angle, then elbow and wrist positions.
         this.stand=[.88,0,.49,.025,.088,0,0,.12,.22,1.13,.055,.065,1.17,.17];
@@ -158,10 +159,17 @@ class MiniatureScene {
         this.pose=new Float64Array(this.stand.length);
         this.readingPose=new Float64Array(this.sit);
         this.parts.forEach(part=>part.finish());
+        this.readingSide=1;
+        this.placeReadingStand(false);
         this.parkCycles();
         this.people.frame(-4,1.53,5.96,0);
         this.people.place(this.rehal,[0,0,0],[0,1,0]);
         this.update(0);
+    }
+    placeReadingStand(placed){
+        this.carryingBook=false;this.bookPlaced=placed;
+        this.people.frame(this.readingSide*8.65,placed?1.53:-10,-3.25,0);
+        this.people.place(this.readingStand,[0,0,0],[0,1,0]);
     }
     campusAssets(){
         const m=this.people;
@@ -176,8 +184,12 @@ class MiniatureScene {
         };
         this.catPosition=[-28.6,1.44,-21];
         this.lastPet=-Infinity;
+        this.petTimes=[];
+        this.catRoute=[[-28.6,-20.8],[-28.2,-26],[-27.2,-32],[-25,-34.4],[-23,-32],[-25.6,-29.6],[-27.5,-25.2]];
+        this.catStop=1;this.catDirection=1;this.catHeading=Math.PI;
+        this.catTime=0;this.catRest=0;this.fleeUntil=0;
         const tones=['#527978','#b16e4c','#71809d','#b9a076'];
-        this.students=tones.slice(0,2).map((shirt,i)=>{
+        this.students=tones.map((shirt,i)=>{
             const model=this.person(shirt,'#374954',shirt,'#ac795b','#342f2c');
             model.pack=m.oval(.167,.078,i?'#566544':'#7e5440',.47);
             model.straps=[0,1].map(()=>m.sleeve(.022,.018,'#57513e',.34));
@@ -247,25 +259,45 @@ class MiniatureScene {
             if(lamp)m.place(lamp,[0,.86,.40],[0,.88,.51]);
         });
     }
-    petCat(seconds=this.lastSceneTime){
+    petCat(seconds,eye){
+        if(seconds<this.fleeUntil)return '';
+        const now=performance.now();
+        this.petTimes=this.petTimes.filter(t=>now-t<5000);this.petTimes.push(now);
         this.lastPet=seconds;
+        if(this.petTimes.length<4){
+            this.catRest=seconds+2;
+            return 'Si Kucing leans into your hand.';
+        }
+        const position=this.catPosition,route=this.catRoute;
+        const previous=(this.catStop-this.catDirection+route.length)%route.length;
+        const away=[position[0]-eye[0],position[2]-eye[2]];
+        const score=i=>(route[i][0]-position[0])*away[0]+(route[i][1]-position[2])*away[1];
+        if(score(previous)>score(this.catStop)){this.catStop=previous;this.catDirection*=-1;}
+        this.fleeUntil=seconds+5;this.catRest=0;this.petTimes=[];
+        return 'Si Kucing flicks its tail and runs off.';
     }
     updateCat(t){
-        const p=this.cat,m=this.people;
-        // Pause at the shoe racks and stretch out on the sunlit gallery tiles.
-        const phase=t%44, outbound=phase<12, moving=outbound||phase>=22&&phase<34;
-        const resting=phase>=12&&phase<22;
-        const u=outbound?phase/12:resting?1:phase<34?1-(phase-22)/12:0;
-        const pet=this.pulse(t-this.lastPet,-.1,.4,2,3);
-        const sleep=resting?this.pulse(phase,12,13,20,22)*(1-pet):0;
-        const z=-20.8-9*u,x=-28.6+.33*Math.sin(u*Math.PI);
-        const y=1.15,h=.28-.15*sleep;
-        this.catPosition=[x,y+h,z];
-        m.frame(x,y,z,outbound||resting?Math.PI:0);
-        m.place(p.body,[0,h,-.25],[0,h+.014,.22]);
+        const p=this.cat,m=this.people,dt=Math.min(.5,Math.max(0,t-this.catTime));
+        this.catTime=t;
+        let [x,,z]=this.catPosition;
+        const fleeing=t<this.fleeUntil, moving=t>=this.catRest;
+        const target=this.catRoute[this.catStop],dx=target[0]-x,dz=target[1]-z;
+        const distance=Math.hypot(dx,dz),step=dt*(fleeing?3.7:.85);
+        if(moving&&distance>0){
+            this.catHeading=Math.atan2(dx,dz);
+            const u=Math.min(1,step/distance);x+=dx*u;z+=dz*u;
+        }
+        if(moving&&distance<=step){
+            this.catStop=(this.catStop+this.catDirection+this.catRoute.length)%this.catRoute.length;
+            this.catRest=fleeing?t:t+3;
+        }
+        const pet=fleeing?0:this.pulse(t-this.lastPet,-.1,.4,2,3);
+        const sit=moving?0:1,y=1.15,h=.28-.05*sit;
+        this.catPosition=[x,y+h,z];m.frame(x,y,z,this.catHeading);
+        m.place(p.body,[0,h-.12*sit,-.25],[0,h+.014+.055*sit,.22]);
         m.place(p.breast,[0,h-.09,.14],[0,h+.13,.20]);
         const lift=.026*pet+.009*Math.sin(t*2);
-        const headY=h+.07+lift;
+        const headY=h+.07+lift+.055*sit;
         m.place(p.head,[0,headY,.205],[0,headY+.21,.225]);
         m.place(p.muzzle,[0,headY+.038,.32],[0,headY+.11,.324]);
         for(let j=0;j<2;j++){
@@ -275,8 +307,8 @@ class MiniatureScene {
         }
         for(let j=0;j<4;j++){
             const side=j%2?1:-1,front=j<2?1:-1;
-            const stride=moving?side*front*Math.sin(t*7.6):0;
-            m.place(p.legs[j],[side*.075,h-.03,front*.15],[side*.079,.018+.04*Math.max(0,stride),front*.15+.083*stride+.072*sleep]);
+            const stride=moving?side*front*Math.sin(t*(fleeing?16:7.6)):0;
+            m.place(p.legs[j],[side*.075,h-.03,front*.15],[side*.079,.018+.04*Math.max(0,stride),front*.15+.083*stride+(front<0?.13*sit:0)]);
         }
         const swish=.07*Math.sin(t*(2+pet));
         const tail=[[0,h,-.20],[swish,h+.035,-.34],[swish*1.6,h+.13+pet*.07,-.42],[swish*2,h+.23+pet*.13,-.38]];
@@ -285,12 +317,14 @@ class MiniatureScene {
     updateCampus(t){
         this.updateCat(t);
         this.students.forEach((student,i)=>{
-            const a=t*.11+i*Math.PI, z=-35.5+11*Math.sin(a), heading=Math.cos(a)>0?0:Math.PI;
+            const a=t*(.12+.012*i)+i*Math.PI/2, z=-35.5+10*Math.sin(a);
+            const x=-28.2+i*.47+1.15*Math.cos(a);
+            const heading=Math.atan2(-1.15*Math.sin(a),10*Math.cos(a));
             const greeting=this.pulse(Math.abs(Math.sin(a)),-.02,0,.07,.21);
             const arms=greeting>.01?{leftFoot:0,rightFoot:0,arms:[
                 [[-.22,1.12,.03],[-.20,.91,.05]],[[.23,1.16,.04],[.16,1.04+.36*greeting,.19]]
             ]}:null;
-            this.human(student,-28.7+i*.83,1.15,z,heading,this.stand,t*5.4+i,Math.abs(Math.cos(a)),-1,false,arms);
+            this.human(student,x,1.15,z,heading,this.stand,t*5.4+i,Math.abs(Math.cos(a)),-1,false,arms);
         });
         this.lawn.visible=this.afternoon&&!this.thursday;
         if(this.lawn.visible){
@@ -653,14 +687,16 @@ class MiniatureScene {
         const m=this.lake;
         for(let i=0;i<this.school.length;i++){
             const f=this.school[i],a=time*(.34+.025*(i%4))+i*2.39996;
-            const radius=(.99+(i%4)*.51)*(1-.52*feeding);
+            const response=Math.min(1,feeding*(.68+.32*Math.sin(a+i)**2));
+            const radius=(1.05+(i%5)*.51)*(1-.72*response);
             const schoolOffset=i<9?0:(1-Math.min(1,feeding))*3.6;
             const x=8+schoolOffset+radius*Math.sin(a), z=26.14+radius*.65*Math.cos(a);
             const heading=Math.atan2(Math.cos(a),-.65*Math.sin(a));
-            const depth=-.165-.034*(i%3)+.034*Math.sin(a*3)+.095*feeding;
+            const surfacing=Math.max(0,Math.sin(a*3.5+i))**3*response;
+            const depth=-.19-.035*(i%4)+.038*Math.sin(a*3)+.18*surfacing;
             m.frame(x,depth,z,heading);
             const size=f.size,tail=.074*Math.sin(time*(5.6+i*.16)+i),wag=tail*size;
-            const snout=[0,0,.275*size],base=[wag*.26,0,-.26*size],tip=[wag,0,-.405*size];
+            const snout=[0,.09*surfacing,.275*size],base=[wag*.26,0,-.26*size],tip=[wag,0,-.405*size];
             m.place(f.body,base,snout,size);
             m.place(f.fin,[0,.069*size,-.075*size],[0,.146*size,.02*size],size);
             for(let side=0;side<2;side++){
@@ -692,8 +728,11 @@ class MiniatureScene {
             const flight=(age-i*.045)/.65,k=Math.max(0,Math.min(1,flight));
             const x=.16+(-.16+.23*Math.sin(i*4.19+scatter))*k;
             const z=.49+(2.26+.21*Math.cos(i*2.7+scatter))*k;
-            const y=1.45+1.6*k-4.19*k*k,scale=flight>=0&&flight<=1?1:.0001;
-            this.people.place(pieces[i],[x,y,z],[x,y+.034*scale,z],scale);
+            const afloat=flight>=1,drift=Math.min(3,Math.max(0,age-.65));
+            const y=afloat?-1.14+.012*Math.sin(7*drift+i):1.45+1.6*k-4.19*k*k;
+            const scale=flight<0?.0001:Math.max(.0001,1-Math.max(0,drift-.4-i*.1));
+            const zz=z+drift*.09;
+            this.people.place(pieces[i],[x,y,zz],[x,y+.034*scale,zz],scale);
         }
     }
     update(seconds) {
@@ -777,7 +816,7 @@ class MiniatureScene {
             const handful=this.handfuls[i],age=t-handful.start;
             if(handful.active){
                 this.scatterFood(handful.pieces,age,i*.77);
-                if(age>.90||age<0)handful.active=false;
+                if(age>3||age<0)handful.active=false;
             }
             if(age>=0&&age<4.8)gathering=Math.max(gathering,1.32*this.pulse(age,.15,1.15,2.8,4.8));
         }

@@ -8,11 +8,12 @@ const openCommunity = (() => {
     const dateFormat = new Intl.DateTimeFormat('en-CA', {timeZone:zone, year:'numeric', month:'2-digit', day:'2-digit'});
     const timeFormat = new Intl.DateTimeFormat('en-GB', {timeZone:zone, timeStyle:'medium'});
     const minuteFormat = new Intl.DateTimeFormat('en-GB', {timeZone:zone, timeStyle:'short'});
-    const titles = {feed:'Sponsor fish food', donate:'Tabung Masjid', board:'Rakan Masjid UTP', founders:'Wall of contributors', ayah:'Ayah explainer', tour:'A walk through An-Nur'};
+    const titles = {clock:'Waktu solat · Seri Iskandar',names:'Asma ul-Husna',shelf:'Qur’an shelf',feed:'Sponsor fish food', donate:'Tabung Masjid', board:'Rakan Masjid UTP', founders:'Wall of contributors', ayah:'Ayah explainer', tour:'A walk through An-Nur'};
 
     const style = document.createElement('style');
     style.textContent = `
     #community-panel {inset:auto 1rem 1rem auto;margin:0;width:min(29rem,calc(100% - 2rem));max-height:85dvh;overflow:auto;background:#fcfbf5;color:#233d32;border:1px solid #aebfb1;border-radius:12px;padding:1.35rem;box-shadow:0 12px 55px #0d2d2640;line-height:1.55}
+    #community-panel.founders {inset:0;margin:auto}
     #community-panel.giving {inset:0;margin:auto;text-align:center;max-height:94dvh;border:2px solid #d8bd80;border-top:8px solid #256554;border-radius:18px;box-shadow:0 5px 0 #183e34,0 12px 45px #102b3255}
     #community-panel.giving h2 {font:750 1.5rem/1.2 system-ui,sans-serif}
     .donation-qr {display:block;width:min(100%,240px);height:auto;margin:.8rem auto;background:white;padding:10px;border-radius:12px}
@@ -31,7 +32,7 @@ const openCommunity = (() => {
     #community-panel a {color:#265b48;text-underline-offset:3px}
     #community-panel button,#community-panel select {border:1px solid #aabaa9;border-radius:5px;background:#edf2e9;padding:.4rem .65rem;margin:.25rem .4rem .25rem 0}
     #community-panel .dismiss {position:absolute;right:.7rem;top:.65rem}
-    #community-panel [lang=ar] {font:1.75rem/1.8 serif}
+    #community-panel [lang=ar] {font:1.85rem/1.95 ViewerNaskh,serif}
     #community-panel dl {display:grid;grid-template-columns:1fr auto;margin:.5rem 0}
     #community-panel dt,#community-panel dd {padding:.25rem 0;border-bottom:1px solid #dce2d7;margin:0}
     #community-panel time,#community-panel dd {font-variant-numeric:tabular-nums}
@@ -124,14 +125,22 @@ const openCommunity = (() => {
     }
     setInterval(checkPrayer,5000);
     function noticeboard() {
+        add('p','Masjid An-Nur stands beside the lake at UTP in Seri Iskandar. Sultan Azlan Shah officially opened the mosque on 14 July 2006.');
+        source('Masjid An-Nur · UTP campus tour','https://www.utp.edu.my/Pages/The-University/360%20VR%20Tour/Masjid-An-Nur.aspx');
+        add('h3','Rakan Masjid UTP');
         add('p','Rakan Masjid UTP is a student Islamic club at Universiti Teknologi PETRONAS. Its members organise dakwah programmes, volunteer in the community and develop student leaders.');
         add('h3','Annual programmes');
         add('p','Kem Super Syabab helps children learn about prayer during the school holidays. Ramadhan Discovery brings people together for iftar, Quran study and bubur lambuk distribution.');
         source('Explore events and membership at Rakan Masjid UTP',rakanMasjid);
+        source('@rakanmasjidutp on Instagram','https://www.instagram.com/rakanmasjidutp/',add('p',''));
+        prayerTimes();
+    }
+    function prayerTimes(campusOnly=false){
         add('h3','Prayer times');
         const label = add('label','Perak zone ');
         const choice = add('select','',label);
         for (const [id,name] of [['PRK05','5 · Seri Iskandar (campus)'],['PRK02','2 · Ipoh / Batu Gajah']]) add('option',name,choice).value=id;
+        if(campusOnly)label.hidden=true;
         const clock = add('time','',add('p',''));
         const result = add('div','');
         result.setAttribute('aria-live','polite');
@@ -166,14 +175,16 @@ const openCommunity = (() => {
         timer=setInterval(tick,1000);
     }
     async function contributors() {
-        add('h3','Muhammad Khaidhir');
+        add('h3','Muhammad Khaidhir Bin Mohd Razin');
         add('p','President, Rakan Masjid UTP 2026');
-        add('p','Muhammad Khaidhir founded this visualizer on 22 November 2026. The first release included the 3D model and offline viewer. The same day brought the recorded tour and Netlify configuration.');
+        add('p','Muhammad Khaidhir Bin Mohd Razin founded this visualizer on 22 November 2026. The first release included the 3D model and offline viewer. The same day brought the recorded tour and Netlify configuration.');
         source('First project commit',repo+'/commit/ea5c0cc');
         const credit=add('p','Cat recording by Dan Crosby. ');
         source('Meow', 'https://commons.wikimedia.org/wiki/File:Meow.ogg',credit);
         credit.append(' · ');
         source('CC BY-SA 3.0','https://creativecommons.org/licenses/by-sa/3.0/',credit);
+        add('p','Model version __MODEL_VERSION__ · Built '+new Date('__BUILD_TIME__').toLocaleString('en-MY',{timeZone:zone})+' MYT');
+        source('Contribute to the project on GitHub',repo);
         add('h3','Project contributors');
         const status=add('p','Loading contributors from GitHub…');
         const roster=add('ul','');
@@ -230,6 +241,65 @@ const openCommunity = (() => {
         select.onchange=render;render();
     }
 
+    function namesPanel(){
+        const names=JSON.parse($('names-data').textContent);
+        add('p','Explore the 99 Names of Allah and their English meanings.');
+        const label=add('label','Choose a name ');
+        const select=add('select','',label);
+        names.forEach(([,latin],i)=>add('option',(i+1)+' · '+latin,select));
+        const arabic=add('p','');arabic.lang='ar';arabic.dir='rtl';
+        const meaning=add('p','');
+        function show(){const entry=names[select.selectedIndex];arabic.textContent=entry[0];meaning.textContent=entry[2];}
+        select.onchange=show;show();
+        source('Names and meanings · AlAdhan','https://api.aladhan.com/v1/asmaAlHusna');
+    }
+    let chapters;
+    function reading(){
+        if(!chapters){
+            chapters=Array.from({length:114},()=>[]);
+            for(const line of $('quran-data').textContent.split('\n')){
+                if(!/^\d+\|/.test(line))continue;
+                const [chapter,,verse]=line.split('|');chapters[Number(chapter)-1].push(verse);
+            }
+        }
+        const label=add('label','Surah ');
+        const select=add('select','',label);
+        chapters.forEach((_,i)=>add('option',String(i+1),select));
+        const page=add('div',''),nav=add('div','');let first=0;
+        const prev=action('Previous verses',()=>{first-=6;render();},nav);
+        const next=action('Next verses',()=>{first+=6;render();},nav);
+        function render(){
+            const verses=chapters[select.selectedIndex];
+            page.replaceChildren();add('h3','Verses '+(first+1)+'–'+Math.min(first+6,verses.length),page);
+            verses.slice(first,first+6).forEach((text,i)=>{
+                const p=add('p',text,page);p.lang='ar';p.dir='rtl';
+                add('small',String(first+i+1),p);
+            });
+            prev.disabled=first===0;next.disabled=first+6>=verses.length;
+            dialog.scrollTop=0;
+        }
+        select.onchange=()=>{first=0;render();};render();
+        source('Qur’an text · Tanzil Project','https://tanzil.net',add('p',''));
+    }
+    function shelf(){
+        if(miniatures.bookPlaced){
+            action('Read on the rehal',()=>{body.replaceChildren();reading();});
+            action('Return the Qur’an to the shelf',()=>{miniatures.placeReadingStand(false);dirty=true;dialog.close();});
+            return;
+        }
+        if(!miniatures.carryingBook){
+            action('Pick up a Qur’an',()=>{
+                miniatures.carryingBook=true;
+                miniatures.readingSide=pose().eye[0]<0?-1:1;
+                body.replaceChildren();shelf();
+            });
+        }else{
+            action('Place the wooden rehal and read',()=>{
+                miniatures.placeReadingStand(true);dirty=true;
+                body.replaceChildren();reading();
+            });
+        }
+    }
     function tour() {
         const stops=[
             ['aerial','A university takes shape','UTP opened in 1997. Its Seri Iskandar campus grew around academic buildings designed by Foster + Partners. From above, trace the route between the shore and the mosque.','UTP campus history','https://www.utp.edu.my/about-us/about/'],
@@ -251,19 +321,48 @@ const openCommunity = (() => {
         }
         render();
     }
-    return function open(key) {
+    function open(key) {
         if (key==='kursi') key='ayah-kursi';
         const title=titles[key] || (key==='ayah-kursi' && titles.ayah);
         if (!title) return;
         clearInterval(timer);
         body.replaceChildren();dialog.querySelector('h2').textContent=title;
         dialog.classList.toggle('giving',key==='donate'||key==='feed');
+        dialog.classList.toggle('founders',key==='founders');
         if(!dialog.open)dialog.showModal();
         dialog.scrollTop=0;
         if(key==='board')noticeboard();
         else if(key==='founders')contributors();
+        else if(key==='clock')prayerTimes(true);
+        else if(key==='names')namesPanel();
+        else if(key==='shelf')shelf();
         else if(key==='tour')tour();
         else if(key.startsWith('ayah'))ayah(key==='ayah-kursi'?1:0);
         else giving(key==='feed');
     };
+    open.startClock=()=>{
+        const face=document.createElement('canvas');face.width=1024;face.height=512;
+        const g=face.getContext('2d');let last='',pending=false;
+        async function tick(){
+            const now=new Date(),minute=Math.floor(now.getTime()/60000);
+            if(document.hidden||pending||last===minute)return;
+            last=minute;pending=true;
+            const fields=Object.fromEntries(dateFormat.formatToParts(now).map(p=>[p.type,p.value]));
+            let row;
+            try{const month=await monthTimes('PRK05',fields);row=month.prayers.find(p=>p.day===Number(fields.day));}
+            catch{/* The wall clock still shows local time offline. */}
+            finally{pending=false;}
+            g.fillStyle='#102b25';g.fillRect(0,0,1024,512);g.textAlign='center';
+            g.fillStyle='#ebd69c';g.font='38px sans-serif';g.fillText('WAKTU SOLAT  ·  SERI ISKANDAR',512,64);
+            g.fillStyle='white';g.font='bold 82px sans-serif';g.fillText(minuteFormat.format(now),512,160);
+            prayerLabels.forEach(([name,field],i)=>{
+                const x=170+i%3*342,y=238+Math.floor(i/3)*137;
+                g.fillStyle='#bad7ca';g.font='35px sans-serif';g.fillText(name,x,y);
+                g.fillStyle='#fff3c8';g.font='bold 46px sans-serif';g.fillText(row?.[field]?minuteFormat.format(row[field]*1000):'—',x,y+56);
+            });
+            renderer.setClockFace(face);dirty=true;
+        }
+        tick();setInterval(tick,10000);
+    };
+    return open;
 })();

@@ -2,14 +2,16 @@
 from math import cos, pi, sin
 
 
-def label(s, name, row, center, width, height, right=(-1, 0)):
+def label(s, name, row, center, width, height, right=(-1, 0), texture="signage.jpg"):
     x,y,z = center
     dx,dz = right[0]*width/2,right[1]*width/2
     points = [(x-dx,y+height/2,z-dz),(x+dx,y+height/2,z+dz),
               (x+dx,y-height/2,z+dz),(x-dx,y-height/2,z-dz)]
     uv = [(0,(row+.01)/9),(1,(row+.01)/9),(1,(row+.99)/9),(0,(row+.99)/9)]
+    if texture!='signage.jpg':
+        uv=[(0,0),(1,0),(1,1),(0,1)]
     for ids in ((0,1,2),(0,2,3)):
-        s.textured_tri(name,'signage.jpg',[points[i] for i in ids],[uv[i] for i in ids])
+        s.textured_tri(name,texture,[points[i] for i in ids],[uv[i] for i in ids])
 
 
 def shoe_rack(s, x, y, z):
@@ -42,8 +44,8 @@ def community(s):
     s.box('Contributors plaque footing',(x,1.26,z),(2.52,.22,1.04),'#8b897b')
     s.box('Contributors plaque monument',(x,1.89,z),(2.26,1.08,.70),'#706e61')
     s.box('Contributors plaque coping',(x,2.47,z),(2.38,.11,.81),'#beb5a1')
-    label(s,'Contributors plaque inscription',2,(x,2.0,z-.352),1.87,.54)
-    shoe_rack(s,-8,1.15,-18.95)
+    label(s,'Contributors plaque inscription',2,(x,2.0,z-.352),1.87,.54,texture='founders.jpg')
+
 
 
 def mezzanine(s):
@@ -130,8 +132,27 @@ def service_rooms(s):
     s.beam('Minbar microphone',(-5.36,5.13,14.74),(-5.46,5.16,14.79),.034,'#363c37')
 
 
+def hall_displays(s):
+    # Right when facing qibla is -X. The faces point into the main hall.
+    for name,texture,x,z,width,height in [
+        ('Prayer clock','clock.jpg',-12.24,8.0,2.7,1.35),
+        ('Asma ul-Husna','names.jpg',12.24,9.5,4.6,2.0),
+        ('Ayat reading panel','ayat.jpg',12.24,4.3,4.6,2.0)
+    ]:
+        y=3.12
+        sign=1 if x<0 else -1
+        s.box(name+' frame',(x,y,z),(.12,height+.10,width+.10),'#816747')
+        face=x+sign*.065
+        points=[(face,y+height/2,z+sign*width/2),(face,y+height/2,z-sign*width/2),
+                (face,y-height/2,z-sign*width/2),(face,y-height/2,z+sign*width/2)]
+        uv=[(0,0),(1,0),(1,1),(0,1)]
+        for ids in ((0,1,2),(0,2,3)):
+            s.textured_tri(name+' face',texture,[points[i] for i in ids],[uv[i] for i in ids])
+
+
 def build(s):
     community(s)
+    hall_displays(s)
     mezzanine(s)
     service_rooms(s)
     for z,row in ((-19.3,4),(-44.3,5)):
