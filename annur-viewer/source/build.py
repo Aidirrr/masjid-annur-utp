@@ -190,10 +190,15 @@ if __name__=='__main__':
     model=arch.glb()
     (DIST/'Masjid-An-Nur-UTP.glb').write_bytes(model)
     viewer=(SRC/'viewer.js').read_text().replace('/* MINIATURES_SCRIPT */',(SRC/'miniatures.js').read_text()+'\n'+(SRC/'birds.js').read_text())
-    for marker, filename in [('COMMUNITY_SCRIPT','community.js'), ('INTERACTION_SCRIPT','interaction.js')]:
+    for marker, filename in [('AUDIO_SCRIPT','audio.js'), ('COMMUNITY_SCRIPT','community.js'), ('INTERACTION_SCRIPT','interaction.js')]:
         viewer=viewer.replace('/* '+marker+' */',(SRC/filename).read_text())
     qr = (SRC.parent.parent/'sedekahje-masjid-an-nur-utp.png').read_bytes()
     viewer=viewer.replace('__MOSQUE_QR__','data:image/png;base64,'+base64.b64encode(qr).decode())
     page=(SRC/'viewer.html').read_text().replace('/* VIEWER_SCRIPT */',viewer)
+    for marker,file,mime in [('__MASJID_LOGO__','masjid-logo.png','image/png'),('__ATHAN__','athan.mp3','audio/mpeg')]:
+        encoded=base64.b64encode((SRC/'materials'/file).read_bytes()).decode()
+        page=page.replace(marker,'data:'+mime+';base64,'+encoded)
+    (DIST/'manifest.webmanifest').write_bytes((SRC/'manifest.webmanifest').read_bytes())
+    (DIST/'app-icon.png').write_bytes((SRC/'materials'/'app-icon.png').read_bytes())
     (DIST/'index.html').write_text(page.replace('__ARCH_DATA__',embedded(model)).replace('__LAND_DATA__',embedded(land.glb())))
     print('Wrote GLB and offline viewer.',len(model),'GLB bytes')

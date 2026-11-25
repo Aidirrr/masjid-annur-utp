@@ -12,11 +12,20 @@ let nearestAction=null,pickParts=[];
 function updateNearby(){
     let nearest=null,best=4;
     if(walking){
+        const {eye,back,right,up}=pose(),tan=Math.tan(fieldOfView()/2);
         for(const stop of destinations){
-            const p=stop.point||miniatures.catPosition;
-            if(!p)continue;
-            const distance=Math.hypot(...p.map((v,i)=>v-camera.eye[i]));
-            if(distance<best){best=distance;nearest=stop;}
+            const point=stop.point||miniatures.catPosition;
+            if(!point)continue;
+            const offset=point.map((v,i)=>v-eye[i]),distance=Math.hypot(...offset);
+            if(distance>=best)continue;
+            const depth=-dot(offset,back);
+            if(depth<=.1)continue;
+            const x=.5+dot(offset,right)*canvas.clientHeight/(2*depth*tan*canvas.clientWidth);
+            const y=.5-dot(offset,up)/(2*depth*tan);
+            if(x<.07||x>.93||y<.07||y>.93)continue;
+            nearest=stop;best=distance;
+            $('nearby').style.left=(100*x)+'%';
+            $('nearby').style.top=(100*y)+'%';
         }
     }
     if(nearestAction===nearest)return;
@@ -26,7 +35,7 @@ function updateNearby(){
 }
 function interact(key){
     if(key==='cat'){
-        miniatures.petCat(sceneSeconds);petUntil=sceneSeconds+4;dirty=true;
+        worldAudio.meow();miniatures.petCat(sceneSeconds);petUntil=sceneSeconds+4;dirty=true;
     }else openCommunity(key);
 }
 $('nearby').onclick=()=>{if(nearestAction)interact(nearestAction.key);};
@@ -46,21 +55,24 @@ $('settings').onclick=e=>{
 
 const gameOptions=$('gameOptions');
 const landscapeTouch=matchMedia('(pointer:coarse) and (orientation:landscape)');
-const menuGroups=['.activity-bar','#scene-options','#fast','.buttons','#export'].map(selector=>{
-    const element=selector==='#fast' ? $('fast').parentElement : document.querySelector(selector);
+const menuGroups=['.activity-bar','#scene-options','.buttons','#export'].map(selector=>{
+    const element=document.querySelector(selector);
     const marker=document.createComment(selector);
     element.before(marker);
     return {element,marker};
 });
 function layoutGameMenu(){
+    const immersive=landscapeTouch.matches||document.fullscreenElement===$('app');
+    $('app').classList.toggle('immersive',immersive);
     gameOptions.close();
     for(const {element,marker} of menuGroups){
-        if(landscapeTouch.matches)gameOptions.append(element);
+        if(immersive)gameOptions.append(element);
         else marker.after(element);
     }
 }
 $('gameMenu').onclick=()=>gameOptions.showModal();
 $('resumeGame').onclick=()=>gameOptions.close();
+document.addEventListener('fullscreenchange',layoutGameMenu);
 landscapeTouch.addEventListener('change',layoutGameMenu);
 layoutGameMenu();
 

@@ -33,7 +33,11 @@ def community(s):
     for dx in (-.80,.80):
         s.box('RMUTP board posts',(x+dx,2.25,z),(.065,1.44,.085),'#596763')
     s.box('RMUTP board frame',(x,2.82,z),(2.25,.94,.11),'#343d39')
-    label(s,'RMUTP board display',1,(x,2.82,z-.057),2.14,.78)
+    s.box('RMUTP board backing',(x,2.82,z-.058),(2.14,.80,.012),'#faf9f3')
+    points=[(x+.67,3.20,z-.067),(x-.67,3.20,z-.067),(x-.67,2.44,z-.067),(x+.67,2.44,z-.067)]
+    uv=[(0,0),(1,0),(1,1),(0,1)]
+    for ids in ((0,1,2),(0,2,3)):
+        s.textured_tri('RMUTP board logo','rm-logo.jpg',[points[i] for i in ids],[uv[i] for i in ids])
     x,z=4.8,-34.7
     s.box('Contributors plaque footing',(x,1.26,z),(2.52,.22,1.04),'#8b897b')
     s.box('Contributors plaque monument',(x,1.89,z),(2.26,1.08,.70),'#706e61')

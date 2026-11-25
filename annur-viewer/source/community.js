@@ -13,11 +13,17 @@ const openCommunity = (() => {
     const style = document.createElement('style');
     style.textContent = `
     #community-panel {inset:auto 1rem 1rem auto;margin:0;width:min(29rem,calc(100% - 2rem));max-height:85dvh;overflow:auto;background:#fcfbf5;color:#233d32;border:1px solid #aebfb1;border-radius:12px;padding:1.35rem;box-shadow:0 12px 55px #0d2d2640;line-height:1.55}
-    #community-panel.giving {border:2px solid #d8bd80;border-top:8px solid #256554;border-radius:18px;box-shadow:0 5px 0 #183e34,0 12px 45px #102b3255}
+    #community-panel.giving {inset:0;margin:auto;text-align:center;max-height:94dvh;border:2px solid #d8bd80;border-top:8px solid #256554;border-radius:18px;box-shadow:0 5px 0 #183e34,0 12px 45px #102b3255}
     #community-panel.giving h2 {font:750 1.5rem/1.2 system-ui,sans-serif}
     .donation-qr {display:block;width:min(100%,240px);height:auto;margin:.8rem auto;background:white;padding:10px;border-radius:12px}
     #community-panel .save-qr {display:block;text-align:center;border-radius:10px;background:#24654f;color:white;font-weight:700;text-decoration:none;padding:.7rem;box-shadow:0 3px 0 #143a30}
     #community-panel .save-qr:active {transform:translateY(2px)}
+    @media (orientation:landscape) and (max-height:520px){
+        #community-panel.giving{width:min(420px,92vw);padding:8px 16px}
+        #community-panel.giving .donation-qr{width:min(100%,53dvh);margin:4px auto}
+        #community-panel.giving h2,#community-panel.giving h3{margin-block:2px}
+
+    }
     #community-panel::backdrop {background:#102a211c}
     #community-panel h2 {font:600 1.5rem/1.25 Georgia,serif;margin:0 4rem 1rem 0}
     #community-panel h3 {font-size:1rem;margin:1.1rem 0 .4rem}
@@ -85,6 +91,38 @@ const openCommunity = (() => {
 
     const prayerLabels = [['Subuh','fajr'],['Syuruk','syuruk'],['Zohor','dhuhr'],['Asar','asr'],['Maghrib','maghrib'],['Isyak','isha']];
     const months = new Map();
+    async function monthTimes(region,fields){
+        const key=region+'-'+fields.year+'-'+fields.month;
+        if(!months.has(key)){
+            const request=fetchJSON('https://api.waktusolat.app/v2/solat/'+region+'?year='+fields.year+'&month='+Number(fields.month))
+                .then(data=>{
+                    if(data.zone!==region||Number(data.year)!==Number(fields.year)||Number(data.month_number)!==Number(fields.month)||!Array.isArray(data.prayers))throw Error('Unexpected timetable');
+                    return data;
+                }).catch(error=>{months.delete(key);throw error;});
+            months.set(key,request);
+        }
+        return months.get(key);
+    }
+    let lastAthan=0,checking=false,retryAfter=0;
+    async function checkPrayer(){
+        if(!worldAudio.ready()||checking||Date.now()<retryAfter)return;
+        checking=true;
+        try{
+            const fields=Object.fromEntries(dateFormat.formatToParts(new Date()).map(p=>[p.type,p.value]));
+            const data=await monthTimes('PRK05',fields);
+            const row=data.prayers.find(p=>p.day===Number(fields.day));
+            const now=Date.now()/1000;
+            for(const field of ['fajr','dhuhr','asr','maghrib','isha']){
+                const time=row?.[field];
+                if(time>lastAthan&&now>=time&&now-time<60&&worldAudio.ready()){
+                    if(await worldAudio.athan())lastAthan=time;
+                    break;
+                }
+            }
+        }catch{retryAfter=Date.now()+60000;}
+        finally{checking=false;}
+    }
+    setInterval(checkPrayer,5000);
     function noticeboard() {
         add('p','Rakan Masjid UTP is a student Islamic club at Universiti Teknologi PETRONAS. Its members organise dakwah programmes, volunteer in the community and develop student leaders.');
         add('h3','Annual programmes');
@@ -110,13 +148,7 @@ const openCommunity = (() => {
             result.replaceChildren();
             const loading=add('p','Loading JAKIM times via Waktu Solat…',result);
             try {
-                const monthKey=region+'-'+fields.year+'-'+fields.month;
-                let data=months.get(monthKey);
-                if (!data) {
-                    data=await fetchJSON('https://api.waktusolat.app/v2/solat/'+region+'?year='+fields.year+'&month='+Number(fields.month));
-                    if (data.zone!==region || Number(data.year)!==Number(fields.year) || Number(data.month_number)!==Number(fields.month) || !Array.isArray(data.prayers)) throw new Error('Unexpected timetable');
-                    months.set(monthKey,data);
-                }
+                const data=await monthTimes(region,fields);
                 if (activeRequest!==key || !loading.isConnected) return;
                 const row=data.prayers.find(p=>p.day===Number(fields.day));
                 if (!row || prayerLabels.some(([,field])=>!Number.isFinite(row[field]))) throw new Error('Missing day');
@@ -134,7 +166,9 @@ const openCommunity = (() => {
         timer=setInterval(tick,1000);
     }
     async function contributors() {
-        add('p','Aidirrr founded this visualizer on 22 November 2026. The first release included the 3D model and offline viewer. The same day brought the recorded tour and Netlify configuration.');
+        add('h3','Muhammad Khaidhir');
+        add('p','President, Rakan Masjid UTP 2026');
+        add('p','Muhammad Khaidhir founded this visualizer on 22 November 2026. The first release included the 3D model and offline viewer. The same day brought the recorded tour and Netlify configuration.');
         source('First project commit',repo+'/commit/ea5c0cc');
         add('h3','Project contributors');
         const status=add('p','Loading contributors from GitHub…');

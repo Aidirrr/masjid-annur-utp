@@ -1,0 +1,10 @@
+{
+  "name": "Masjid An-Nur UTP",
+  "short_name": "Masjid An-Nur",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f5ef",
+  "theme_color": "#20342e",
+  "icons": [{"src": "app-icon.png", "sizes": "256x256", "type": "image/png"}]
+}

@@ -478,6 +478,7 @@ const depthFS=`#version 300 es
 precision highp float;void main(){}`;
 
 /* MINIATURES_SCRIPT */
+/* AUDIO_SCRIPT */
 /* COMMUNITY_SCRIPT */
 /* INTERACTION_SCRIPT */
 
@@ -817,7 +818,7 @@ function tossFood(){
     if(sceneSeconds-lastCast<.25)return;
     const atTerrace=walking&&Math.hypot(camera.eye[0]-8.9,camera.eye[2]-22.1)<3;
     if(walking?!atTerrace:preset.value!=='feeding')chooseView('feeding',false);
-    miniatures.feedFish(sceneSeconds);lastCast=sceneSeconds;dirty=true;
+    worldAudio.splash();miniatures.feedFish(sceneSeconds);lastCast=sceneSeconds;dirty=true;
     $('feed').textContent='Food tossed';
     canvas.focus({preventScroll:true});
 }
@@ -940,9 +941,21 @@ for(const key of ['w','a','s','d']){
     btn.addEventListener('click',e=>{if(!e.detail && walking){held.add(key);walkStep(.12);held.delete(key);}});
 }
 const expand=$('expand');
-if(!document.fullscreenEnabled)expand.hidden=true;
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const standalone=navigator.standalone||matchMedia('(display-mode: standalone)').matches;
+expand.hidden=standalone||(!document.fullscreenEnabled&&!isIOS);
 if(expand.hidden)expand.style.display='none';
-expand.onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await $('app').requestFullscreen()}catch{expand.style.display='none'}};
+expand.onclick=async()=>{
+    if(gameOptions.open)gameOptions.close();
+    try{
+        if(document.fullscreenElement){await document.exitFullscreen();return;}
+        if(document.fullscreenEnabled){await $('app').requestFullscreen();return;}
+    }catch{/* A browser may expose fullscreen but deny the current request. */}
+    $('fullscreenMessage').textContent=isIOS
+        ? 'In Safari, tap Share, then Add to Home Screen. Enable Open as Web App if shown, tap Add, and launch Masjid An-Nur from its icon to play without browser tabs.'
+        : 'Your browser could not enter fullscreen. Try its fullscreen command.';
+    $('fullscreenHelp').showModal();
+};
 document.addEventListener('fullscreenchange',()=>{const text=document.fullscreenElement?'Exit fullscreen':'Enter fullscreen';expand.title=text;expand.setAttribute('aria-label',text)});
 $('export').onclick=async()=>{
     const a=document.createElement('a');a.download='Masjid-An-Nur-UTP.glb';
