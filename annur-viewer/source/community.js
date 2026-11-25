@@ -170,6 +170,10 @@ const openCommunity = (() => {
         add('p','President, Rakan Masjid UTP 2026');
         add('p','Muhammad Khaidhir founded this visualizer on 22 November 2026. The first release included the 3D model and offline viewer. The same day brought the recorded tour and Netlify configuration.');
         source('First project commit',repo+'/commit/ea5c0cc');
+        const credit=add('p','Cat recording by Dan Crosby. ');
+        source('Meow', 'https://commons.wikimedia.org/wiki/File:Meow.ogg',credit);
+        credit.append(' · ');
+        source('CC BY-SA 3.0','https://creativecommons.org/licenses/by-sa/3.0/',credit);
         add('h3','Project contributors');
         const status=add('p','Loading contributors from GitHub…');
         const roster=add('ul','');

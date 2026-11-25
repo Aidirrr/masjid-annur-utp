@@ -21,8 +21,14 @@ function updateNearby(){
             const depth=-dot(offset,back);
             if(depth<=.1)continue;
             const x=.5+dot(offset,right)*canvas.clientHeight/(2*depth*tan*canvas.clientWidth);
-            const y=.5-dot(offset,up)/(2*depth*tan);
+            let y=.5-dot(offset,up)/(2*depth*tan);
             if(x<.07||x>.93||y<.07||y>.93)continue;
+            if(stop.key==='cat'){
+                // Leave room for the ears and tail even when the camera is close.
+                const clearance=.55/(2*tan*Math.max(.1,depth-.45))+30/canvas.clientHeight;
+                y=y-clearance>.07?y-clearance:y+clearance;
+                if(y>.93)continue; // The cat itself still accepts a tap.
+            }
             nearest=stop;best=distance;
             $('nearby').style.left=(100*x)+'%';
             $('nearby').style.top=(100*y)+'%';

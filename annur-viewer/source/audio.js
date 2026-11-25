@@ -1,6 +1,7 @@
 // The viewer embeds IslamCan's Azan 1 recording from islamcan.com/audio/adhan/.
 const worldAudio=(()=>{
     let ctx,noise,air,recording,call;
+    let catClip,meowing=false;
     const sound=$('worldSound');
     function ready(){return sound.checked&&!document.hidden&&ctx?.state==='running';}
     function sync(){
@@ -44,7 +45,23 @@ const worldAudio=(()=>{
     },4200);
     return {
         ready,
-        meow(){sync();voice('triangle',[430,730,570,290],.60,.12);voice('sine',[860,1460,1140,580],.60,.026);},
+        async meow(){
+            sync();
+            if(!ctx||!sound.checked||document.hidden||call||meowing)return;
+            meowing=true;
+            try{
+                if(!catClip){
+                    const bytes=Uint8Array.from(atob('__MEOW__'.split(',')[1]),c=>c.charCodeAt(0));
+                    catClip=await ctx.decodeAudioData(bytes.buffer);
+                }
+                if(!ready()||call){meowing=false;return;}
+                const cat=ctx.createBufferSource(),gain=ctx.createGain();
+                cat.buffer=catClip;gain.gain.value=.46;
+                cat.connect(gain).connect(ctx.destination);
+                cat.onended=()=>{meowing=false;};
+                cat.start();
+            }catch{meowing=false;}
+        },
         splash(){
             sync();
             for(let i=0;i<5;i++)voice('sine',[480+Math.random()*290,170],.10,.075,i*.055);

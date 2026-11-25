@@ -72,6 +72,10 @@ body.clean .immersive #gameMenu{display:none}
 #gameOptions #expand{display:flex;width:auto;padding:0 12px;align-items:center;gap:8px}
 #gameOptions #expand::after{content:attr(aria-label)}
 #gameOptions #expand[hidden]{display:none}
+#rotateHint{display:none}
+@media(pointer:coarse) and (orientation:portrait){
+ #rotateHint:not([hidden]){display:block;position:absolute;top:40%;left:50%;transform:translateX(-50%);max-width:90%;width:max-content;padding:8px 14px;border-radius:20px;background:#16372de8;color:white;font-size:13px;pointer-events:none}
+}
 </style>
 </head>
 <body>
@@ -85,7 +89,7 @@ body.clean .immersive #gameMenu{display:none}
 <symbol id="pin" viewBox="0 0 24 24"><path d="M19 9c0 6-7 12-7 12S5 15 5 9a7 7 0 1 1 14 0z"/><circle cx="12" cy="9" r="2.3"/></symbol><symbol id="down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
 </defs></svg>
 <main id="app"><header><div class="brand"><img src="__MASJID_LOGO__" alt="" width="46" height="32"><span>An-Nur</span><small>Architectural model</small></div><button class="download" id="export"><svg class="ico"><use href="#download"/></svg>Download GLB</button></header>
-<section class="stage" aria-label="Interactive mosque model"><canvas id="scene" tabindex="0" aria-label="3D model of Masjid An-Nur. Drag or use the arrow keys to orbit. Scroll or use plus and minus to zoom. Press Home to reset."></canvas><div class="status" role="status" id="status">Loading the model…</div>
+<section class="stage" aria-label="Interactive mosque model"><canvas id="scene" tabindex="0" aria-label="3D model of Masjid An-Nur. Drag or use the arrow keys to orbit. Scroll or use plus and minus to zoom. Press Home to reset."></canvas><p id="rotateHint" hidden>Rotate your phone for a wider view.</p><div class="status" role="status" id="status">Loading the model…</div>
 <button type="button" id="gameMenu" aria-label="Game menu" aria-haspopup="dialog" aria-controls="gameOptions"><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
 <dialog id="gameOptions" aria-labelledby="gameOptionsTitle"><div class="menu-heading"><h2 id="gameOptionsTitle">Game menu</h2><button id="resumeGame" type="button">Resume</button></div></dialog>
 <div class="activity-bar viz-controls">

@@ -127,6 +127,7 @@ class WalkingMap {
         this.floor=new Float32Array(this.width*this.height).fill(-Infinity);
         this.upper=new Float32Array(this.floor.length).fill(-Infinity);
         this.blocked=new Uint8Array(this.floor.length);
+        this.galleryStairs=parts.find(part=>part.name==='Muslimat stair treads');
         const floors=/paving|carpet|landing|stair nosings|lake elevation stairs|plaza limestone|plaza lawn|stepped plaza walk|court entrance extension|service colonnade deck|ramp|threshold|wudu.*(tile|floor)|lawns|lakeside walk/i;
         const walls=/envelope|glazing|wall|portal jamb|pier|column|handrail|cistern|lectern|bollard|wudu.*(seat|stool|bench|partition)|qibla marble|street portal|marble ashlar/i;
         for(const part of parts){
@@ -184,6 +185,15 @@ class WalkingMap {
         const high=this.upper[i],low=this.blocked[i]?-Infinity:this.floor[i];
         if(Number.isFinite(high)&&Math.abs(high-from)<=.46)return high;
         return Math.abs(high-from)<Math.abs(low-from)?high:low;
+    }
+    stairLaneX(x,z,from){
+        const stairs=this.galleryStairs;
+        if(!stairs||z<stairs.min[2]||z>stairs.max[2]||x<stairs.min[0]||x>stairs.max[0])return x;
+        const tread=this.upper[this.cell(x,z)];
+        if(Math.abs(tread-from)>.46)return x;
+        // Keep the whole footprint on the tread when a diagonal stride meets a rail.
+        const clearance=.18+this.step/2;
+        return Math.max(stairs.min[0]+clearance,Math.min(stairs.max[0]-clearance,x));
     }
     canStep(x,z,from){
         for(const [dx,dz] of [[0,0],[.18,0],[-.18,0],[0,.18],[0,-.18]]){
@@ -252,7 +262,8 @@ function walkStep(dt){
     // Sample along fast strides so a long frame cannot skip a thin wall.
     const n=Math.ceil(Math.hypot(dx,dz)/.12);
     for(let i=0;i<n;i++){
-        if(walkMap.canStep(eye[0]+dx/n,eye[2],playerFloor))eye[0]+=dx/n;
+        const nextX=walkMap.stairLaneX(eye[0]+dx/n,eye[2]+dz/n,playerFloor);
+        if(walkMap.canStep(nextX,eye[2],playerFloor))eye[0]=nextX;
         if(walkMap.canStep(eye[0],eye[2]+dz/n,playerFloor))eye[2]+=dz/n;
         playerFloor=walkMap.ground(eye[0],eye[2],playerFloor);
     }
@@ -986,6 +997,11 @@ canvas.addEventListener('webglcontextrestored',()=>location.reload());
         if(sceneParam&&$('activity')){$('activity').value=sceneParam;$('activity').dispatchEvent(new Event('change'));}
         const phaseParam=params.get('phase');
         if(phaseParam!==null&&$('phase')){$('phase').value=phaseParam;$('phase').dispatchEvent(new Event('change'));}
-        statusBox.textContent='';requestAnimationFrame(frame);
+        statusBox.textContent='';
+        if(matchMedia('(pointer:coarse) and (orientation:portrait)').matches&&!params.has('clean')){
+            $('rotateHint').hidden=false;
+            setTimeout(()=>{$('rotateHint').hidden=true;},5000);
+        }
+        requestAnimationFrame(frame);
     }catch(error){console.error(error);statusBox.textContent='The 3D view could not start. Open the GLB download in a 3D viewer.'}
 })();

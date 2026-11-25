@@ -195,7 +195,7 @@ if __name__=='__main__':
     qr = (SRC.parent.parent/'sedekahje-masjid-an-nur-utp.png').read_bytes()
     viewer=viewer.replace('__MOSQUE_QR__','data:image/png;base64,'+base64.b64encode(qr).decode())
     page=(SRC/'viewer.html').read_text().replace('/* VIEWER_SCRIPT */',viewer)
-    for marker,file,mime in [('__MASJID_LOGO__','masjid-logo.png','image/png'),('__ATHAN__','athan.mp3','audio/mpeg')]:
+    for marker,file,mime in [('__MASJID_LOGO__','masjid-logo.png','image/png'),('__ATHAN__','athan.mp3','audio/mpeg'),('__MEOW__','meow.mp3','audio/mpeg')]:
         encoded=base64.b64encode((SRC/'materials'/file).read_bytes()).decode()
         page=page.replace(marker,'data:'+mime+';base64,'+encoded)
     (DIST/'manifest.webmanifest').write_bytes((SRC/'manifest.webmanifest').read_bytes())
