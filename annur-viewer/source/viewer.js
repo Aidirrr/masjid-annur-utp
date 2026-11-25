@@ -130,7 +130,7 @@ class WalkingMap {
         const floors=/paving|carpet|landing|stair nosings|lake elevation stairs|plaza limestone|plaza lawn|stepped plaza walk|court entrance extension|service colonnade deck|ramp|threshold|wudu.*(tile|floor)|lawns|lakeside walk/i;
         const walls=/envelope|glazing|wall|portal jamb|pier|column|handrail|cistern|lectern|bollard|wudu.*(seat|stool|bench|partition)|qibla marble|street portal|marble ashlar/i;
         for(const part of parts){
-            const upper=/Muslimat stair treads|Muslimat prayer carpet/i.test(part.name);
+            const upper=/Minbar teak tread|Minbar .*landing|Minbar landing|Muslimat stair treads|Muslimat prayer carpet/i.test(part.name);
             const ground=upper||floors.test(part.name),wall=walls.test(part.name);
             if(!ground&&!wall)continue;
             const v=new Float32Array(part.vertices.buffer,part.vertices.byteOffset,part.vertices.byteLength/4);

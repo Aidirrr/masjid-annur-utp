@@ -21,6 +21,7 @@ function updateNearby(){
     }
     if(nearestAction===nearest)return;
     nearestAction=nearest;$('nearby').hidden=!nearest;
+    $('nearby').classList.toggle('tabung-action',nearest?.key==='donate');
     if(nearest)$('nearby').textContent=nearest.label;
 }
 function interact(key){
@@ -42,6 +43,26 @@ $('settings').onclick=e=>{
     const btn=e.currentTarget;
     btn.setAttribute('aria-expanded',String(btn.getAttribute('aria-expanded')!=='true'));
 };
+
+const gameOptions=$('gameOptions');
+const landscapeTouch=matchMedia('(pointer:coarse) and (orientation:landscape)');
+const menuGroups=['.activity-bar','#scene-options','#fast','.buttons','#export'].map(selector=>{
+    const element=selector==='#fast' ? $('fast').parentElement : document.querySelector(selector);
+    const marker=document.createComment(selector);
+    element.before(marker);
+    return {element,marker};
+});
+function layoutGameMenu(){
+    gameOptions.close();
+    for(const {element,marker} of menuGroups){
+        if(landscapeTouch.matches)gameOptions.append(element);
+        else marker.after(element);
+    }
+}
+$('gameMenu').onclick=()=>gameOptions.showModal();
+$('resumeGame').onclick=()=>gameOptions.close();
+landscapeTouch.addEventListener('change',layoutGameMenu);
+layoutGameMenu();
 
 const stickInput={forward:0,side:0};
 const stick=$('stick');

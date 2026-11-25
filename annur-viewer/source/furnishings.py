@@ -23,8 +23,8 @@ def shoe_rack(s, x, y, z):
 def community(s):
     for x,y,z,prefix in [(3.6,1.53,-18.9,'Foyer tabung'),(7.1,1.15,22.7,'Terrace tabung')]:
         s.box(prefix+' plinth',(x,y+.05,z),(.68,.10,.62),'#4a514a')
-        s.box(prefix+' cabinet',(x,y+.56,z),(.61,.95,.55),'#946b43')
-        s.box(prefix+' brass lid',(x,y+1.06,z),(.66,.07,.60),'#bcaa77')
+        s.box(prefix+' cabinet',(x,y+.56,z),(.61,.95,.55),'#267264')
+        s.box(prefix+' brass lid',(x,y+1.06,z),(.71,.09,.64),'#e3bc69')
         s.box(prefix+' deposit slot',(x,y+1.099,z),(.31,.008,.05),'#272d2b')
         for dx in (-.27,.27):
             s.box(prefix+' brass corners',(x+dx,y+.56,z-.282),(.035,.92,.022),'#c4ad75')
@@ -81,11 +81,6 @@ def mezzanine(s):
     for i,col in enumerate(('#f3ebdd','#c5ccc0','#efdee1','#dae3df','#e7decb')):
         x=-10.72+i*.35
         s.lathe('Hanging telekung',x,-3.54,[(y+.39,.159),(y+.57,.162),(y+1.34,.10),(y+1.52,.028)],col,9)
-    # Kneeling figures with pooled hems, shoulder-length veil and inset face.
-    for x,z,cloth in ((-6,-2.7,'#ede8df'),(-4.45,-2.82,'#bbcac6'),(-2.8,-2.65,'#c4b3bc')):
-        s.lathe('Seated Muslimat prayer garments',x,z,[(y+.018,.27),(y+.18,.29),(y+.30,.23),(y+.62,.17)],cloth,12)
-        s.lathe('Seated Muslimat veils',x,z+.02,[(y+.37,.242),(y+.62,.21),(y+.79,.14),(y+.88,.075),(y+.89,.024)],cloth,12)
-        s.lathe('Seated Muslimat faces',x,z+.12,[(y+.65,.035),(y+.71,.076),(y+.78,.072),(y+.8,.04)],'#a8775a',10)
 
 
 def service_rooms(s):

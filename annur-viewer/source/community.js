@@ -1,7 +1,7 @@
 // These panels are embedded in the standalone viewer by build.py.
 const openCommunity = (() => {
     const mosque = 'https://e-masjid.perak.my/masjid/Xj3rYW';
-    const programmes = 'https://utpinfo.utp.edu.my/Pages/Students/Student%20Development%20and%20Services/An-Nur%20Islamic%20Centre/Programmes-and-Services.aspx';
+    const rakanMasjid = 'https://rakan-masjid-website.vercel.app';
     const timetable = 'https://mufti.perak.gov.my/component/content/article/waktu-solat-2026?catid=2';
     const repo = 'https://github.com/Aidirrr/masjid-annur-utp';
     const zone = 'Asia/Kuala_Lumpur';
@@ -13,6 +13,11 @@ const openCommunity = (() => {
     const style = document.createElement('style');
     style.textContent = `
     #community-panel {inset:auto 1rem 1rem auto;margin:0;width:min(29rem,calc(100% - 2rem));max-height:85dvh;overflow:auto;background:#fcfbf5;color:#233d32;border:1px solid #aebfb1;border-radius:12px;padding:1.35rem;box-shadow:0 12px 55px #0d2d2640;line-height:1.55}
+    #community-panel.giving {border:2px solid #d8bd80;border-top:8px solid #256554;border-radius:18px;box-shadow:0 5px 0 #183e34,0 12px 45px #102b3255}
+    #community-panel.giving h2 {font:750 1.5rem/1.2 system-ui,sans-serif}
+    .donation-qr {display:block;width:min(100%,240px);height:auto;margin:.8rem auto;background:white;padding:10px;border-radius:12px}
+    #community-panel .save-qr {display:block;text-align:center;border-radius:10px;background:#24654f;color:white;font-weight:700;text-decoration:none;padding:.7rem;box-shadow:0 3px 0 #143a30}
+    #community-panel .save-qr:active {transform:translateY(2px)}
     #community-panel::backdrop {background:#102a211c}
     #community-panel h2 {font:600 1.5rem/1.25 Georgia,serif;margin:0 4rem 1rem 0}
     #community-panel h3 {font-size:1rem;margin:1.1rem 0 .4rem}
@@ -63,50 +68,28 @@ const openCommunity = (() => {
             return await response.json();
         } finally {clearTimeout(timeout);}
     }
-    // The directory QR identifies the UTP mosque committee in DuitNow merchant field 59.
-    // A DuitNow merchant ID is not a bank account number.
-    const mosqueAccount = null;
     function giving(feeding) {
-        if (feeding) add('p','Give RM1 to the mosque committee to support the mosque. Ask the Centre about earmarking your donation for fish food.');
+        if (feeding) add('p','Ask the mosque committee about sponsoring fish food.');
+        add('h3','Donate with DuitNow');
         const qr=add('img','');
+        qr.className='donation-qr';
         qr.src='__MOSQUE_QR__';
         qr.alt='DuitNow QR for Jawatankuasa Masjid UTP';
-        qr.style.cssText='display:block;width:min(100%,290px);height:auto;margin:auto';
-        const download=source('Save QR image',qr.src,add('p',''));
+        add('p','Before confirming in your banking app, check that the recipient is JAWATANKUASA MASJID UTP.');
+        const download=source('Save DuitNow QR',qr.src);
+        download.className='save-qr';
         download.download='Masjid-An-Nur-UTP-DuitNow.png';
-        add('p','Check that your banking app shows JAWATANKUASA MASJID UTP before confirming.');
-        source('QR listed by SedekahJe','https://sedekah.je/mosque/masjid-an-nur-utp');
-        add('h3','Bank transfer');
-        if (mosqueAccount) {
-            add('p',mosqueAccount.bank);
-            const number = add('code',mosqueAccount.number);
-            action('Copy account number', async e => {
-                const button = e.currentTarget;
-                try {await navigator.clipboard.writeText(mosqueAccount.number); button.textContent = 'Copied';}
-                catch {
-                    const range=document.createRange();range.selectNodeContents(number);
-                    const selection=getSelection();selection.removeAllRanges();selection.addRange(range);
-                    button.textContent='Number selected for copying';
-                }
-            });
-        } else {
-            add('p','Request current bank transfer details from An-Nur Islamic Centre.');
-            source('Email the Centre','mailto:annur.islamiccentre@utp.edu.my');
-        }
-        add('h3','Keeping your receipt');
-        add('p','Check the recipient shown by your bank before confirming. Save the transaction receipt with its date, amount and reference. For a mosque acknowledgement, ask the Centre how to submit your reference.');
-        source('Mosque contact directory',mosque);
+        source('QR listed by SedekahJe','https://sedekah.je/mosque/masjid-an-nur-utp',add('p',''));
         if (feeding) action('Toss virtual food', () => {dialog.close();tossFood();}, add('p',''));
     }
 
     const prayerLabels = [['Subuh','fajr'],['Syuruk','syuruk'],['Zohor','dhuhr'],['Asar','asr'],['Maghrib','maghrib'],['Isyak','isha']];
     const months = new Map();
     function noticeboard() {
-        add('p','The Islamic Centre hosts kuliah after Subuh and Maghrib. Rakan Masjid organises weekend workshops, and student volunteers lead group zikr. Students can also approach the Centre for personal guidance.');
-        source('Programmes and services',programmes);
-        add('h3','Community welfare');
-        add('p','UTP alumni have organised iftar here and given duit raya to asnaf students.');
-        source('UTP alumni Ramadan report','https://utp.edu.my/Pages/Alumni/News-and-Events/Ramadhan-Reflections-%E2%80%93-Illuminating-Lives-with-UTP-Alumni.aspx');
+        add('p','Rakan Masjid UTP is a student Islamic club at Universiti Teknologi PETRONAS. Its members organise dakwah programmes, volunteer in the community and develop student leaders.');
+        add('h3','Annual programmes');
+        add('p','Kem Super Syabab helps children learn about prayer during the school holidays. Ramadhan Discovery brings people together for iftar, Quran study and bubur lambuk distribution.');
+        source('Explore events and membership at Rakan Masjid UTP',rakanMasjid);
         add('h3','Prayer times');
         const label = add('label','Perak zone ');
         const choice = add('select','',label);
@@ -214,7 +197,7 @@ const openCommunity = (() => {
             ['aerial','A university takes shape','UTP opened in 1997. Its Seri Iskandar campus grew around academic buildings designed by Foster + Partners. From above, trace the route between the shore and the mosque.','UTP campus history','https://www.utp.edu.my/about-us/about/'],
             ['waterside','The floating mosque','From the waterline, the terrace appears to hold the prayer hall just above the lake. Perak records construction beginning on 16 October 2003 and handover on 6 October 2005.','Perak mosque register',mosque],
             ['hall','Inside the prayer hall','Sultan Azlan Shah officially opened Masjid An-Nur on 14 July 2006. UTP describes the main hall and its covered prayer areas as serving the wider public as well as the university.','UTP mosque tour','https://www.utp.edu.my/Pages/The-University/360%20VR%20Tour/Masjid-An-Nur.aspx'],
-            ['court','Beyond congregational prayer','The mosque also provides a place to learn and meet. Student volunteers lead zikr, and Rakan Masjid brings groups together for weekend workshops.','An-Nur Islamic Centre programmes',programmes]
+            ['court','Beyond congregational prayer','During Ramadhan Discovery, Rakan Masjid UTP brings the community together for iftar and Quran study.','Rakan Masjid UTP programmes',rakanMasjid]
         ];
         let index=0;
         if(walking)setWalking(false);
@@ -236,6 +219,7 @@ const openCommunity = (() => {
         if (!title) return;
         clearInterval(timer);
         body.replaceChildren();dialog.querySelector('h2').textContent=title;
+        dialog.classList.toggle('giving',key==='donate'||key==='feed');
         if(!dialog.open)dialog.showModal();
         dialog.scrollTop=0;
         if(key==='board')noticeboard();

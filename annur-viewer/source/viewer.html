@@ -37,6 +37,27 @@ body.clean header,body.clean footer,body.clean .activity-bar,body.clean .buttons
  .activity-bar select{max-width:135px}
 }
 body.clean .stage #jump,body.clean #nearby,body.clean .walk-help,body.clean .walk-controls{display:none}
+#gameMenu{display:none}
+@media (pointer:coarse) and (orientation:landscape){
+ main{grid-template-rows:minmax(0,1fr)}
+ header,footer,.hint,.walk-help{display:none}
+ #gameMenu{display:grid;place-items:center;position:absolute;top:max(10px,env(safe-area-inset-top));left:max(14px,env(safe-area-inset-left));width:44px;height:44px;border-radius:14px;color:white;background:#152d2bbd;border:1px solid #ffffff80}
+ body.clean #gameMenu{display:none}
+ .walk-controls{bottom:max(12px,env(safe-area-inset-bottom));left:max(18px,env(safe-area-inset-left))}
+ #stick{width:clamp(78px,24dvh,100px);height:clamp(78px,24dvh,100px)}
+ .stage:has(#walkPad:not([hidden])) #jump{right:max(20px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom))}
+ .stage #nearby{right:max(20px,env(safe-area-inset-right));bottom:calc(max(18px,env(safe-area-inset-bottom)) + 72px)}
+}
+#gameOptions{width:min(420px,88vw);max-height:84dvh;overflow:auto;border:1px solid #c7cec1;border-radius:12px;padding:16px;color:#20342e;background:#fafbf6}
+#gameOptions::backdrop{background:#10251f66}
+.menu-heading{display:flex;align-items:center;justify-content:space-between}
+.menu-heading h2{font-size:18px;margin:0}
+.menu-heading button{min-height:44px}
+#gameOptions .activity-bar,#gameOptions .buttons{position:static;max-width:none;box-shadow:none;background:none;border:0;padding:0}
+#gameOptions .activity-bar,#gameOptions .scene-options,#gameOptions .buttons{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+#gameOptions .buttons button{width:44px;height:44px}
+#nearby.tabung-action{min-height:46px;background:#195b49;color:#fff;border:2px solid #e3bd72;border-radius:12px;box-shadow:0 3px 0 #123e32;font-weight:700}
+#nearby.tabung-action::before{content:'+';display:inline-grid;place-items:center;width:22px;height:22px;margin-right:8px;border-radius:50%;background:#f4ce7b;color:#3b321c}
 </style>
 </head>
 <body>
@@ -51,6 +72,8 @@ body.clean .stage #jump,body.clean #nearby,body.clean .walk-help,body.clean .wal
 </defs></svg>
 <main id="app"><header><div class="brand"><svg aria-hidden="true" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"><path d="M3 31h30M6 28V18h24v10M8 18c1-3 4-3 5-6h10c1 3 4 3 5 6M13 12c0-4 2-6 5-8 3 2 5 4 5 8zm5-8V1M9 15.5h18M12 21v7m6-7v7m6-7v7"/></svg><span>An-Nur</span><small>Architectural model</small></div><button class="download" id="export"><svg class="ico"><use href="#download"/></svg>Download GLB</button></header>
 <section class="stage" aria-label="Interactive mosque model"><canvas id="scene" tabindex="0" aria-label="3D model of Masjid An-Nur. Drag or use the arrow keys to orbit. Scroll or use plus and minus to zoom. Press Home to reset."></canvas><div class="status" role="status" id="status">Loading the model…</div>
+<button type="button" id="gameMenu" aria-label="Game menu" aria-haspopup="dialog" aria-controls="gameOptions"><svg class="ico" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+<dialog id="gameOptions" aria-labelledby="gameOptionsTitle"><div class="menu-heading"><h2 id="gameOptionsTitle">Game menu</h2><button id="resumeGame" type="button">Resume</button></div></dialog>
 <div class="activity-bar viz-controls">
  <label>Scene <select class="form-select" id="activity" disabled><option value="daily">Everyday</option><option value="thursday">Thursday · Blessings Over Meals</option><option value="friday">Jumu’ah · Friday prayer</option></select></label>
  <label id="phaseControls" hidden>Phase <select class="form-select" id="phase"><option value="0">Arrival</option><option value="1">Wudu</option><option value="2">Khutbah</option><option value="3">Prayer</option></select></label>
