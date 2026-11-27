@@ -62,13 +62,14 @@ function liveEnvironment(ms){
     return {lighting,sun:normalize(direction),night,disc:clamp((h+.8)/1.1,0,1)};
 }
 function setLighting(key,now=Date.now()){
-    if(key!=='live' && !Object.hasOwn(environments,key))return;
+    if(key!=='live' && key!=='scene' && !Object.hasOwn(environments,key))return;
     lightingMode=key;
-    if(key==='live'){
+    if(key==='live'||key==='scene'){
         const state=liveEnvironment(now);
         environment=state.lighting;sun=state.sun;nightAmount=state.night;skyDisk=state.disc;
         lastLightMinute=Math.floor(now/60000);
-        $('liveTime').textContent='Live · '+clockFormat.format(now).toUpperCase()+' MYT';
+        const prefix=key==='live'?'Live':(eventClock?.estimated?'Scene (approx.)':'Scene');
+        $(key==='live'?'liveTime':'sceneTime').textContent=prefix+' · '+clockFormat.format(now).toUpperCase()+' MYT';
     }else{
         environment=environments[key];sun=normalize(environment.direction);nightAmount=key==='night'?1:0;skyDisk=1;
     }
@@ -97,27 +98,28 @@ function perspective(aspect){
 const cameraViews={
     wuduWomen:{eye:[-34.3,2.8,-47.4],yaw:2.09,pitch:.13,distance:7,target:[-40.3,1.95,-44.2],fov:1.2},
     muslimat:{eye:[1,7.16,-3],yaw:Math.PI/2,pitch:.27,distance:4,target:[-3,6,-3],fov:1.18},
-    foyer:{yaw:Math.PI,pitch:.08,distance:7,target:[-4.35,2.72,-18.94]},
+    foyer:{yaw:0,pitch:.08,distance:3.2,target:[-39.65,2.65,-32.29]},
     memorial:{yaw:Math.PI,pitch:.15,distance:5,target:[4.8,2.15,-34.7]},
-    clock:{eye:[-8.3,2.95,8],yaw:Math.PI/2,pitch:-.04,distance:4,target:[-12.2,3.1,8],fov:1.0},
-    names:{eye:[7.1,3,9.5],yaw:-Math.PI/2,pitch:-.02,distance:5,target:[12.2,3.12,9.5],fov:1.0},
+    clock:{eye:[-10.77,3.14,-1.4],yaw:0,pitch:-.05,distance:3,target:[-10.77,3.20,-3.68],fov:1.0},
+    tabung:{yaw:Math.PI,pitch:.22,distance:2.8,target:[-3.4,2.1,-5.18]},
     shelf:{eye:[8.8,2.85,-1.4],yaw:0,pitch:.18,distance:3,target:[8.8,2.4,-4.2],fov:1.1},
     cat:{yaw:.4,pitch:.27,distance:4,target:[-28.6,1.7,-21]},
-    meal:{yaw:.6,pitch:.33,distance:8,target:[-25,1.7,-38]},
+    meal:{yaw:.6,pitch:.33,distance:8,target:[-9.9,1.6,-25.5]},
     lake:{yaw:.68,pitch:.247,scale:1.19,target:[7,7,-8]},
     aerial:{yaw:3.10,pitch:1.36,scale:2.05,target:[1,1,-32]},
     waterside:{yaw:-.80,pitch:-.083,distance:62,target:[1,8,2],eye:[-39.72,2.68,43.5],fov:1.06},
     qibla:{yaw:Math.PI,pitch:-.09,distance:18,target:[0,4.6,15],eye:[0,3.0,-1.9],fov:.98},
     gallery:{yaw:0,pitch:-.23,distance:14,target:[0,5.7,-2],eye:[0,2.92,9],fov:1.12},
+    padang:{eye:[8,2.8,-45],yaw:Math.PI,pitch:.26,distance:4,target:[8,1.4,-42]},
     street:{yaw:-Math.PI/2,pitch:-.065,distance:34,target:[-41,4,-29.8],eye:[-67,2.88,-29.8],fov:.86},
     court:{yaw:3.56,pitch:.23,scale:.99,target:[0,5,-6]},
     hall:{yaw:3.037,pitch:-.59,distance:9.33,target:[0,8.1,6.6],eye:[.8,2.75,-1],fov:1.57},
     prayer:{yaw:2.57,pitch:.24,distance:5.4,target:[.9,2.25,-12.8]},
-    wudu:{yaw:2.09,pitch:.13,distance:6.9,target:[-40.3,1.95,-18.9]},
+    wudu:{eye:[-34.3,2.8,-22.4],yaw:2.09,pitch:.13,distance:6.9,target:[-40.3,1.95,-18.9],fov:1.12},
     halaqah:{yaw:.60,pitch:.46,distance:3.46,target:[-4,2,6.05]},
-    feeding:{yaw:.66,pitch:.28,distance:9.1,target:[8,1.25,24.85]},
+    feeding:{eye:[8.45,2.77,23.1],yaw:2.99,pitch:.64,distance:4,target:[8,.1,26.1],fov:1.24},
     roofbirds:{yaw:2.82,pitch:.20,distance:7,target:[3.1,8.10,-18.64]},
-    arrivals:{yaw:.94,pitch:.30,distance:37,target:[1,1.65,-31]},
+    arrivals:{eye:[2.8,2.86,-31.8],yaw:2.90,pitch:.04,distance:12,target:[0,2.25,-20],fov:1.22},
     gathering:{yaw:2.74,pitch:.19,distance:5,eye:[4.4,3.48,-.50],target:[0,3,7],fov:1.04},
     dome:{yaw:.57,pitch:.23,scale:.37,target:[0,16.5,5.6]}
 };
@@ -199,6 +201,7 @@ class WalkingMap {
         return Math.max(stairs.min[0]+clearance,Math.min(stairs.max[0]-clearance,x));
     }
     canStep(x,z,from){
+        if(from<3&&Math.abs(z+4.78)<.15&&Math.abs(x)<1+doorOpening*1.02+.16&&Math.abs(x)+.16>doorOpening*1.02)return false;
         for(const [dx,dz] of [[0,0],[.18,0],[-.18,0],[0,.18],[0,-.18]]){
             if(Math.abs(this.ground(x+dx,z+dz,from)-from)>.46)return false;
         }
@@ -206,10 +209,11 @@ class WalkingMap {
     }
 }
 const walkStarts={
-    clock:[-8.7,8,Math.PI/2,0],names:[8.6,9.5,-Math.PI/2,0],shelf:[8.8,-1.4,0,.18],
-    wuduWomen:[-34.3,-47.4,2.09,.13],muslimat:[1,-3,Math.PI/2,.27],foyer:[-4.35,-21.5,Math.PI,0],memorial:[4.8,-37,Math.PI,0],cat:[-28.6,-24,Math.PI,.25],meal:[-25,-36,0,.20],
+    padang:[8,-45,Math.PI,.3],
+    tabung:[-3.4,-7.2,Math.PI,.4],clock:[-10.77,-1.55,0,0],shelf:[8.8,-1.4,0,.18],
+    wuduWomen:[-34.3,-47.4,2.09,.13],muslimat:[1,-3,Math.PI/2,.27],foyer:[-39.65,-29.5,0,.06],memorial:[4.8,-37,Math.PI,0],cat:[-28.6,-24,Math.PI,.25],meal:[-10,-21.4,0,.22],
     waterside:[-40.8,24,-1.12,-.10],qibla:[0,-1.9,Math.PI,-.09],gallery:[0,9,0,-.23],
-    street:[-46.5,-29.8,-Math.PI/2,-.20],roofbirds:[2,-23,Math.PI,-.77],arrivals:[2,-32,Math.PI,0],gathering:[4.4,-.50,2.74,0],
+    street:[-46.5,-29.8,-Math.PI/2,-.20],roofbirds:[2,-23,Math.PI,-.77],arrivals:[2.8,-31.8,2.90,.04],gathering:[4.4,-.50,2.74,0],
     lake:[0,-29,Math.PI,0],court:[0,-29,Math.PI,0],aerial:[0,-43,Math.PI,0],dome:[0,7,Math.PI,-1.15],
     hall:[1,-1,3.05,-.32],prayer:[3.6,-16.8,2.55,.19],feeding:[8.9,22.1,2.93,.54],
     wudu:[-34.3,-22.4,2.09,.13],halaqah:[-2.25,8.6,.60,.35]
@@ -218,6 +222,7 @@ let playerFloor=0,jumpHeight=0,jumpVelocity=0;
 let walkMap=null,walking=false,lastOrbit='lake';
 const held=new Set();
 function enterAt(id){
+    leaveActivity();
     let [x,z,yaw,pitch]=walkStarts[id]||walkStarts.lake;
     const desired=id==='muslimat'?5.54:1.5;
     let floor=walkMap.ground(x,z,desired);
@@ -239,17 +244,20 @@ function enterAt(id){
 function setWalking(on){
     if(!walkMap){$('walk').checked=false;return;}
     if(on===walking)return;
+    leaveActivity();
     resetStick();followFriday=false;walking=on;held.clear();lastOrbitTime=null;rotateControl.disabled=on;
     $('walk').checked=on;$('walkPad').hidden=!on;
     $('walkHint').hidden=!on;
-    if(on){lastOrbit=cameraViews[preset.value]?preset.value:'lake';enterAt(lastOrbit);}
+    if(on){lastOrbit=cameraViews[preset.value]?preset.value:'lake';enterAt('street');}
     else chooseView(lastOrbit,false);
     canvas.focus({preventScroll:true});
 }
 function jump(){
+    if(participation)return;
     if(walking&&jumpHeight===0&&jumpVelocity===0)jumpVelocity=3.8;
 }
 function walkStep(dt){
+    if(participation)return;
     if(jumpVelocity||jumpHeight){
         jumpHeight=Math.max(0,jumpHeight+jumpVelocity*dt-5*dt*dt);
         jumpVelocity=jumpHeight?jumpVelocity-10*dt:0;
@@ -326,6 +334,21 @@ async function parseModel(data){
 
 // A single draw can cover all opaque parts that share shader settings. Keep
 // object names in the downloadable GLB and merge only the GPU upload.
+// The exported leaves are closed. Both live renderers move the same geometry.
+let doorMeshes=[],doorOpening=0;
+function updateEntrance(dt){
+    const eye=walking&&camera.eye;
+    const near=eye&&Math.abs(eye[0])<2.1&&Math.abs(eye[2]+4.78)<4.5&&eye[1]<4.9;
+    const next=clamp(doorOpening+(near?2.8:-1.5)*dt,0,1);
+    if(next===doorOpening)return;
+    for(const mesh of doorMeshes){
+        const shift=(next-doorOpening)*(mesh.name.includes('left')?-1:1)*1.02;
+        const v=new Float32Array(mesh.vertices.buffer,mesh.vertices.byteOffset,mesh.vertices.byteLength/4);
+        for(let i=0;i<v.length;i+=7)v[i]+=shift;
+        mesh.min[0]+=shift;mesh.max[0]+=shift;
+    }
+    doorOpening=next;dirty=true;
+}
 function surfaceKind(name){
     if(name==='Travertine paving')return 3;
     if(name==='Lake fish')return -2;
@@ -527,11 +550,12 @@ class WebGLScene{
         this.white=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,this.white);
         gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([255,255,255,255]));
         this.params(gl.NEAREST);
-        const batches=staticBatches(parts);
+        const batches=staticBatches(parts.filter(p=>!doorMeshes.includes(p)));
         this.meshes=batches.filter(p=>p.name!=='Clear architectural glazing').map(p=>upload(p));
         this.panes=batches.filter(p=>p.name==='Clear architectural glazing').map(p=>upload(p));
-        this.animated=[...miniatures.parts,birds.part].map(p=>upload(p,true));
-        this.visitors=this.animated.filter(m=>m.kind!==-2);
+        this.animated=[...miniatures.parts,birds.part,...doorMeshes].map(p=>upload(p,true));
+        this.visitors=this.animated.filter(m=>m.kind!==-2&&!m.source.name.endsWith(' glass'));
+        this.panes.push(...this.animated.filter(m=>m.source.name.endsWith(' glass')));
         this.fish=this.animated.filter(m=>m.kind===-2);
         gl.bindVertexArray(null);
         this.shadowSize=Math.min(2048,gl.getParameter(gl.MAX_TEXTURE_SIZE));
@@ -659,8 +683,8 @@ class SoftwareScene {
             return {...p,pixels,source:p,data,projected:new Float32Array(data.length),light:new Uint8Array(data.length/7*6),
                 dynamic,fish:p.name==='Lake fish',flora:/Tree crowns|Palm fronds/.test(p.name)};
         };
-        this.parts=parts.filter(p=>p.name!=='Clear architectural glazing').map(p=>prepare(p,false));
-        this.moving=[...miniatures.parts,birds.part].map(p=>prepare(p,true));
+        this.parts=parts.filter(p=>p.name!=='Clear architectural glazing'&&!doorMeshes.includes(p)).map(p=>prepare(p,false));
+        this.moving=[...miniatures.parts,birds.part,...doorMeshes.filter(p=>p.name.endsWith(' frame'))].map(p=>prepare(p,true));
         this.still=true;
     }
     setClockFace(face){
@@ -805,7 +829,7 @@ let lastTime=-1000,lastW=0,lastH=0;
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 // One revolution every three minutes. Ignore time spent in a hidden tab.
 let lastOrbitTime=null,sceneSeconds=0,previousFrame=null;
-let birds=null,fridayStart=0,fridayPhase=-1,followFriday=false,lastCast=-100,restoreLive=false;
+let birds=null,fridayStart=0,fridayPhase=-1,followFriday=false,lastCast=-100;
 const phases=[
     {start:0,view:'arrivals'}, {start:14,view:'wudu'}, {start:30,view:'gathering'}, {start:60,view:'gathering'}
 ];
@@ -816,12 +840,8 @@ function phaseCamera(index){
 }
 function setFriday(on){
     if(!miniatures)return;
-    if(on && lightingMode==='live'){
-        restoreLive=true;$('lighting').value='day';setLighting('day');
-    }else if(!on && restoreLive){
-        restoreLive=false;$('lighting').value='live';setLighting('live');
-    }
     miniatures.friday=on;fridayStart=sceneSeconds;fridayPhase=-1;followFriday=on&&!walking;
+    miniatures.showPrayerBooks();
     $('phaseControls').hidden=!on;
     if(on){phaseCamera(0);}else if(preset.value==='gathering'||preset.value==='arrivals')chooseView('lake',false);
     dirty=true;
@@ -834,6 +854,8 @@ function updateLife(t){
         if(index!==fridayPhase){fridayPhase=index;$('phase').value=String(index);}
     }
     const hour=(new Date().getUTCHours()+8)%24;
+    const altitude=solarPosition(sceneTimestamp()).altitude;
+    miniatures.sunset=lightingMode==='sunset'||(['scene','live'].includes(lightingMode)&&altitude<5&&altitude> -5&&!solarPosition(sceneTimestamp()).rising);
     miniatures.afternoon=lightingMode==='sunset'||(lightingMode==='live'&&hour>=16&&hour<19);
     miniatures.update(t);birds.update(t);
 }
@@ -841,29 +863,55 @@ function tossFood(){
     if(!miniatures)return;
     followFriday=false;
     if(sceneSeconds-lastCast<.25)return;
-    const atTerrace=walking&&Math.hypot(camera.eye[0]-8.9,camera.eye[2]-22.1)<3;
-    if(walking?!atTerrace:preset.value!=='feeding')chooseView('feeding',false);
-    worldAudio.splash();miniatures.feedFish(sceneSeconds);lastCast=sceneSeconds;dirty=true;
+    const atTerrace=walking&&preset.value==='feeding'&&Math.hypot(camera.eye[0]-8.9,camera.eye[2]-22.1)<3;
+    if(!atTerrace)chooseView('feeding',false);
+    const eye=pose().eye;
+    miniatures.feedFish(sceneSeconds,[eye[0]+.15,eye[1]-.38,eye[2]+.24]);
+    worldAudio.splash();lastCast=sceneSeconds;dirty=true;
     $('feed').textContent='Food tossed';
     canvas.focus({preventScroll:true});
 }
 $('feed').onclick=()=>openCommunity('feed');
-let mealStart=0,mealPhase=-1,mealLight=null,petUntil=-1;
+let mealStart=0,mealPhase=-1,petUntil=-1,eventClock=null,dailyLight='live';
+function sceneTimestamp(){
+    if(!eventClock)return Date.now();
+    // The guided sequence compresses the gathering into a short visit.
+    const friday=eventClock.kind==='friday';
+    const elapsed=friday?(sceneSeconds-fridayStart+100)%100:(sceneSeconds-mealStart+48)%48;
+    return eventClock.anchor+(friday?elapsed-30:elapsed)*60000;
+}
+function selectSceneTime(kind){
+    if(!eventClock)dailyLight=lightingMode;
+    const scheduled=kind!=='daily';
+    $('sceneTime').hidden=!scheduled;
+    $('lighting').disabled=scheduled;
+    if(!scheduled){
+        eventClock=null;$('lighting').value=dailyLight;setLighting(dailyLight);return;
+    }
+    const friday=kind==='friday',local=new Date(Date.now()+8*3600000);
+    local.setUTCDate(local.getUTCDate()-(local.getUTCDay()-(friday?5:4)+7)%7);
+    local.setUTCHours(friday?13:19,friday?15:10,0,0);
+    const entry={kind,anchor:local.getTime()-8*3600000,estimated:true};
+    eventClock=entry;$('lighting').value='scene';setLighting('scene',sceneTimestamp());
+    openCommunity.scenePrayerTime(new Date(entry.anchor),friday?'dhuhr':'maghrib').then(anchor=>{
+        if(eventClock!==entry||!Number.isFinite(anchor))return;
+        entry.anchor=anchor;entry.estimated=false;setLighting('scene',sceneTimestamp());
+    }).catch(()=>{});
+}
 function updateMeal(){
     miniatures.thursdayTime=(sceneSeconds-mealStart+48)%48;
     const phase=miniatures.thursdayTime<24?0:1;
     if(phase===mealPhase)return;
     mealPhase=phase;$('mealPhase').value=String(phase);
-    const light=phase?'night':'sunset';
-    $('lighting').value=light;setLighting(light);
     chooseView(phase?'halaqah':'meal',false);
 }
 $('activity').onchange=e=>{
-    if(mealLight){setLighting(mealLight);$('lighting').value=mealLight;mealLight=null;}
+    leaveActivity();
     setFriday(e.target.value==='friday');
     miniatures.thursday=e.target.value==='thursday';
     $('mealControls').hidden=!miniatures.thursday;
-    if(miniatures.thursday){mealLight=lightingMode;mealPhase=-1;mealStart=sceneSeconds;updateMeal();}
+    if(miniatures.thursday){mealPhase=-1;mealStart=sceneSeconds;updateMeal();}
+    selectSceneTime(e.target.value);
     dirty=true;
 };
 $('mealPhase').onchange=e=>{mealStart=sceneSeconds-Number(e.target.value)*24;updateMeal();};
@@ -875,25 +923,28 @@ $('phase').onchange=e=>{
 const rotateControl=$('rotate');
 rotateControl.checked=!reducedMotion.matches;
 rotateControl.onchange=()=>{lastOrbitTime=null;};
-$('lighting').onchange=e=>{restoreLive=false;setLighting(e.target.value);};
+$('lighting').onchange=e=>{setLighting(e.target.value);};
 document.addEventListener('visibilitychange',()=>{lastOrbitTime=null;previousFrame=null;});
 function frame(time){
     if(!renderer)return;
     if(document.hidden){previousFrame=null;requestAnimationFrame(frame);return;}
     const animate=!reducedMotion.matches||miniatures.friday||miniatures.thursday||sceneSeconds<petUntil||sceneSeconds-lastCast<4;
+    if(participation?.kind==='joinMeal'&&previousFrame!==null)mealStart+=Math.min(time-previousFrame,500)*.001;
     if(previousFrame!==null && animate)sceneSeconds+=Math.min(time-previousFrame,500)*.001;
+    if(previousFrame!==null)updateEntrance(clamp((time-previousFrame)/1000,0,.25));
     if(walking&&previousFrame!==null)walkStep(clamp((time-previousFrame)/1000,0,.25));
     previousFrame=time;
     if(miniatures.thursday)updateMeal();
     updateNearby();
-    if(lastCast>-99 && sceneSeconds-lastCast>1.15 && $('feed').textContent!=='Feed fish')$('feed').textContent='Feed fish';
+    if(lastCast>-99 && sceneSeconds-lastCast>1.15 && $('feed').textContent!=='Fish food · RM1')$('feed').textContent='Fish food · RM1';
     if(followFriday && miniatures.friday){
         const t=(sceneSeconds-fridayStart+100)%100;
         const next=t<14?0:t<30?1:t<60?2:3;
         if(next!==fridayPhase)phaseCamera(next);
     }
     const now=Date.now();
-    if(lightingMode==='live' && Math.floor(now/60000)!==lastLightMinute)setLighting('live',now);
+    const displayTime=eventClock?sceneTimestamp():now;
+    if((eventClock||lightingMode==='live')&&Math.floor(displayTime/60000)!==lastLightMinute)setLighting(eventClock?'scene':'live',displayTime);
     let ratio=Math.min(devicePixelRatio||1,1.5,1560/Math.max(canvas.clientWidth,canvas.clientHeight,1));
     if(renderer.still)ratio=Math.min(ratio,760/Math.max(canvas.clientWidth,canvas.clientHeight,1));
     const w=Math.max(1,Math.round(canvas.clientWidth*ratio)),h=Math.max(1,Math.round(canvas.clientHeight*ratio));
@@ -1002,6 +1053,7 @@ canvas.addEventListener('webglcontextrestored',()=>location.reload());
 
         const [arch,land]=await Promise.all([unpack('arch'),unpack('land')]);modelBytes=arch;
         const parts=(await Promise.all([parseModel(arch),parseModel(land)])).flat().filter(part=>part.name!=='Paving joints');
+        doorMeshes=parts.filter(p=>p.name.startsWith('Automatic leaf '));
         pickParts=parts;walkMap=new WalkingMap(parts);miniatures=new MiniatureScene();birds=new MosqueBirds();
         const gl=canvas.getContext('webgl2',{alpha:false,antialias:true,powerPreference:'high-performance'});
         renderer=gl?new WebGLScene(gl,parts):new SoftwareScene(canvas.getContext('2d',{alpha:false}),parts);

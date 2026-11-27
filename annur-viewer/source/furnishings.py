@@ -23,23 +23,35 @@ def shoe_rack(s, x, y, z):
 
 
 def community(s):
-    for x,y,z,prefix in [(3.6,1.53,-18.9,'Foyer tabung'),(7.1,1.15,22.7,'Terrace tabung')]:
-        s.box(prefix+' plinth',(x,y+.05,z),(.68,.10,.62),'#4a514a')
-        s.box(prefix+' cabinet',(x,y+.56,z),(.61,.95,.55),'#267264')
-        s.box(prefix+' brass lid',(x,y+1.06,z),(.71,.09,.64),'#e3bc69')
-        s.box(prefix+' deposit slot',(x,y+1.099,z),(.31,.008,.05),'#272d2b')
-        for dx in (-.27,.27):
-            s.box(prefix+' brass corners',(x+dx,y+.56,z-.282),(.035,.92,.022),'#c4ad75')
-        label(s,prefix+' inscription',0,(x,y+.72,z-.278),.49,.16)
-    x,z=-4.35,-18.94
-    for dx in (-.80,.80):
-        s.box('RMUTP board posts',(x+dx,2.25,z),(.065,1.44,.085),'#596763')
-    s.box('RMUTP board frame',(x,2.82,z),(2.25,.94,.11),'#343d39')
-    s.box('RMUTP board backing',(x,2.82,z-.058),(2.14,.80,.012),'#faf9f3')
-    points=[(x+.67,3.20,z-.067),(x-.67,3.20,z-.067),(x-.67,2.44,z-.067),(x+.67,2.44,z-.067)]
-    uv=[(0,0),(1,0),(1,1),(0,1)]
+    # Black donation safe on the tiled side of the entrance pier.
+    x,y,z=-3.4,1.53,-5.18
+    s.box('Donation bay pier',(x,2.95,-4.78),(.68,2.84,.23),'#e7e4dd')
+    s.box('Foyer tabung cabinet',(x,y+.48,z),(.65,.96,.55),'#262626')
+    s.box('Foyer tabung safe door',(x,y+.47,z-.284),(.57,.83,.027),'#30302e')
+    s.beam('Foyer tabung combination dial',(x+.09,y+.62,z-.30),(x+.09,y+.62,z-.35),.058,'#a8aaa5',16)
+    s.beam('Foyer tabung handle',(x-.13,y+.39,z-.34),(x+.03,y+.43,z-.34),.019,'#b4b5ad')
+    corners=[(x-.14,y+.966,z-.16),(x+.14,y+.966,z-.16),
+             (x+.14,y+.966,z+.12),(x-.14,y+.966,z+.12)]
+    uv=[(0,1),(1,1),(1,0),(0,0)]
     for ids in ((0,1,2),(0,2,3)):
-        s.textured_tri('RMUTP board logo','rm-logo.jpg',[points[i] for i in ids],[uv[i] for i in ids])
+        s.textured_tri('Foyer tabung QR card','tabung-qr.jpg',[corners[i] for i in ids],[uv[i] for i in ids])
+
+    # Recess in the wall of the street-entry passage, above the bench.
+    x,z=-39.65,-32.29
+    s.box('RMUTP board backing',(x,2.69,z),(1.4,1.43,.08),'#202b3a')
+    for dx in (-.75,.75):
+        s.box('RMUTP board reveals',(x+dx,2.69,z+.02),(.12,1.66,.23),'#e4e0d8')
+    s.box('RMUTP board lintel',(x,3.46,z+.02),(1.6,.14,.23),'#e4e0d8')
+    label(s,'RMUTP board logo',0,(x,3.04,z+.047),.78,.43,(1,0),'rm-logo.jpg')
+    label(s,'RMUTP board notices',0,(x,2.47,z+.048),.97,.79,(1,0),'entry-notices.jpg')
+    s.box('Passage timber door',(x+1.65,2.29,z-.10),(.92,2.25,.07),'#6e513a')
+    for dx in (-.62,.62):
+        for dz in (.38,.76):
+            s.box('Entry bench legs',(x+dx,1.36,z+dz),(.045,.42,.045),'#413d37')
+    for j in range(5):
+        s.box('Entry bench slats',(x,1.58,z+.37+j*.095),(1.45,.045,.082),'#655244')
+    for yy in (1.78,1.95):
+        s.box('Entry bench back',(x,yy,z+.35),(1.45,.09,.045),'#655244')
     x,z=4.8,-34.7
     s.box('Contributors plaque footing',(x,1.26,z),(2.52,.22,1.04),'#8b897b')
     s.box('Contributors plaque monument',(x,1.89,z),(2.26,1.08,.70),'#706e61')
@@ -133,26 +145,41 @@ def service_rooms(s):
 
 
 def hall_displays(s):
-    # Right when facing qibla is -X. The faces point into the main hall.
-    for name,texture,x,z,width,height in [
-        ('Prayer clock','clock.jpg',-12.24,8.0,2.7,1.35),
-        ('Asma ul-Husna','names.jpg',12.24,9.5,4.6,2.0),
-        ('Ayat reading panel','ayat.jpg',12.24,4.3,4.6,2.0)
-    ]:
-        y=3.12
-        sign=1 if x<0 else -1
-        s.box(name+' frame',(x,y,z),(.12,height+.10,width+.10),'#816747')
-        face=x+sign*.065
-        points=[(face,y+height/2,z+sign*width/2),(face,y+height/2,z-sign*width/2),
-                (face,y-height/2,z-sign*width/2),(face,y-height/2,z+sign*width/2)]
-        uv=[(0,0),(1,0),(1,1),(0,1)]
-        for ids in ((0,1,2),(0,2,3)):
-            s.textured_tri(name+' face',texture,[points[i] for i in ids],[uv[i] for i in ids])
+    # Under the balcony, on the solid return beside the left bookcase
+    # as seen from the mihrab looking toward the exits (IMG_1465, IMG_1482).
+    x,z=-10.77,-3.82
+    s.box('Clock mounting wall',(x,3.24,z),(1.32,3.42,.16),'#eeeae1')
+    s.box('Prayer clock frame',(x,3.20,z+.101),(1.24,.80,.07),'#262623')
+    label(s,'Prayer clock face',0,(x,3.20,z+.14),1.17,.72,(1,0),'clock.jpg')
+
+
+def sliding_entrance(s):
+    z=-4.78
+    s.box('Automatic entrance overhead track',(0,4.03,z),(4.12,.18,.18),'#747977')
+    s.box('Automatic entrance sensor',(0,3.99,z+.13),(.28,.07,.09),'#303331')
+    for side in (-1,1):
+        x=side*.5
+        leaf='Automatic leaf '+('left' if side<0 else 'right')
+        s.box(leaf+' glass',(x,2.74,z),(.95,2.39,.025),'#b7cdca')
+        for xx in (x-.486,x+.486):
+            s.box(leaf+' frame',(xx,2.74,z),(.036,2.42,.052),'#9b9e98')
+        for yy in (1.55,2.52,3.93):
+            s.box(leaf+' frame',(x,yy,z),(1,.043,.06),'#acafa8')
+        for j in range(8):
+            yy=1.84+j*.24
+            for k in (-1,1):
+                xx=x+k*.38
+                for u in (-1,1):
+                    s.beam(leaf+' frame',(xx,yy-.10,z+.02),(xx+u*.052,yy,z+.02),.008,'#e4e4db',4)
+                    s.beam(leaf+' frame',(xx+u*.052,yy,z+.02),(xx,yy+.10,z+.02),.008,'#e4e4db',4)
+        s.box('Clear architectural glazing',(side*1.52,2.74,z-.055),(1.02,2.4,.025),'#c3d5d2')
+
 
 
 def build(s):
     community(s)
     hall_displays(s)
+    sliding_entrance(s)
     mezzanine(s)
     service_rooms(s)
     for z,row in ((-19.3,4),(-44.3,5)):

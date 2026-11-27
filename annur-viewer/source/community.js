@@ -8,7 +8,7 @@ const openCommunity = (() => {
     const dateFormat = new Intl.DateTimeFormat('en-CA', {timeZone:zone, year:'numeric', month:'2-digit', day:'2-digit'});
     const timeFormat = new Intl.DateTimeFormat('en-GB', {timeZone:zone, timeStyle:'medium'});
     const minuteFormat = new Intl.DateTimeFormat('en-GB', {timeZone:zone, timeStyle:'short'});
-    const titles = {clock:'Waktu solat · Seri Iskandar',names:'Asma ul-Husna',shelf:'Qur’an shelf',feed:'Sponsor fish food', donate:'Tabung Masjid', board:'Rakan Masjid UTP', founders:'Wall of contributors', ayah:'Ayah explainer', tour:'A walk through An-Nur'};
+    const titles = {clock:'Waktu solat · Seri Iskandar',names:'Asma ul-Husna',shelf:'Qur’an shelf',feed:'Fish food · RM1', donate:'Tabung Masjid', board:'Rakan Masjid UTP', founders:'Wall of contributors', ayah:'Ayah explainer', tour:'A walk through An-Nur'};
 
     const style = document.createElement('style');
     style.textContent = `
@@ -76,7 +76,12 @@ const openCommunity = (() => {
         } finally {clearTimeout(timeout);}
     }
     function giving(feeding) {
-        if (feeding) add('p','Ask the mosque committee about sponsoring fish food.');
+        if(feeding){
+            add('p','A portion of fish food costs RM1. Toss a handful into the lake to feed the koi.');
+            action('Toss fish food',()=>{dialog.close();tossFood();});
+            action('View mosque donation QR',()=>open('donate'));
+            return;
+        }
         add('h3','Donate with DuitNow');
         const qr=add('img','');
         qr.className='donation-qr';
@@ -87,7 +92,6 @@ const openCommunity = (() => {
         download.className='save-qr';
         download.download='Masjid-An-Nur-UTP-DuitNow.png';
         source('QR listed by SedekahJe','https://sedekah.je/mosque/masjid-an-nur-utp',add('p',''));
-        if (feeding) action('Toss virtual food', () => {dialog.close();tossFood();}, add('p',''));
     }
 
     const prayerLabels = [['Subuh','fajr'],['Syuruk','syuruk'],['Zohor','dhuhr'],['Asar','asr'],['Maghrib','maghrib'],['Isyak','isha']];
@@ -133,7 +137,7 @@ const openCommunity = (() => {
         add('p','Kem Super Syabab helps children learn about prayer during the school holidays. Ramadhan Discovery brings people together for iftar, Quran study and bubur lambuk distribution.');
         source('Explore events and membership at Rakan Masjid UTP',rakanMasjid);
         source('@rakanmasjidutp on Instagram','https://www.instagram.com/rakanmasjidutp/',add('p',''));
-        prayerTimes();
+
     }
     function prayerTimes(campusOnly=false){
         add('h3','Prayer times');
@@ -147,7 +151,7 @@ const openCommunity = (() => {
         source('Perak Mufti timetable',timetable);
         let activeRequest='';
         async function tick() {
-            const now=new Date();
+            const now=new Date(sceneTimestamp());
             const fields=Object.fromEntries(dateFormat.formatToParts(now).map(p=>[p.type,p.value]));
             const day=fields.year+'-'+fields.month+'-'+fields.day;
             clock.textContent=day+' · '+timeFormat.format(now)+' MYT';
@@ -340,11 +344,16 @@ const openCommunity = (() => {
         else if(key.startsWith('ayah'))ayah(key==='ayah-kursi'?1:0);
         else giving(key==='feed');
     };
+    open.scenePrayerTime=async(date,field)=>{
+        const fields=Object.fromEntries(dateFormat.formatToParts(date).map(p=>[p.type,p.value]));
+        const month=await monthTimes('PRK05',fields);
+        return month.prayers.find(row=>row.day===Number(fields.day))?.[field]*1000;
+    };
     open.startClock=()=>{
         const face=document.createElement('canvas');face.width=1024;face.height=512;
         const g=face.getContext('2d');let last='',pending=false;
         async function tick(){
-            const now=new Date(),minute=Math.floor(now.getTime()/60000);
+            const now=new Date(sceneTimestamp()),minute=Math.floor(now.getTime()/60000);
             if(document.hidden||pending||last===minute)return;
             last=minute;pending=true;
             const fields=Object.fromEntries(dateFormat.formatToParts(now).map(p=>[p.type,p.value]));
@@ -352,17 +361,17 @@ const openCommunity = (() => {
             try{const month=await monthTimes('PRK05',fields);row=month.prayers.find(p=>p.day===Number(fields.day));}
             catch{/* The wall clock still shows local time offline. */}
             finally{pending=false;}
-            g.fillStyle='#102b25';g.fillRect(0,0,1024,512);g.textAlign='center';
+            g.fillStyle='#141615';g.fillRect(0,0,1024,512);g.textAlign='center';
             g.fillStyle='#ebd69c';g.font='38px sans-serif';g.fillText('WAKTU SOLAT  ·  SERI ISKANDAR',512,64);
-            g.fillStyle='white';g.font='bold 82px sans-serif';g.fillText(minuteFormat.format(now),512,160);
+            g.fillStyle='#ff6259';g.font='bold 82px sans-serif';g.fillText(minuteFormat.format(now),512,160);
             prayerLabels.forEach(([name,field],i)=>{
                 const x=170+i%3*342,y=238+Math.floor(i/3)*137;
                 g.fillStyle='#bad7ca';g.font='35px sans-serif';g.fillText(name,x,y);
-                g.fillStyle='#fff3c8';g.font='bold 46px sans-serif';g.fillText(row?.[field]?minuteFormat.format(row[field]*1000):'—',x,y+56);
+                g.fillStyle='#ff6259';g.font='bold 46px sans-serif';g.fillText(row?.[field]?minuteFormat.format(row[field]*1000):'—',x,y+56);
             });
             renderer.setClockFace(face);dirty=true;
         }
-        tick();setInterval(tick,10000);
+        tick();setInterval(tick,1000);
     };
     return open;
 })();

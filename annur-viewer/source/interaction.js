@@ -1,24 +1,103 @@
 // World coordinates also drive the touch interaction prompt in walking mode.
 const destinations=[
-    {key:'donate',label:'Open tabung',point:[3.6,2.38,-18.9]},
-    {key:'donate',label:'Open tabung',point:[7.1,2.04,22.7]},
-    {key:'feed',label:'Feed koi',point:[8.9,2,22.1]},
-    {key:'board',label:'Read noticeboard',point:[-4.35,2.72,-18.94]},
+    {key:'donate',label:'Open tabung',point:[-3.4,2.15,-5.18]},
+    {key:'feed',label:'Fish food · RM1',point:[8.9,2,22.1]},
+    {key:'board',label:'Read noticeboard',point:[-39.65,2.69,-32.23]},
     {key:'founders',label:'Read plaque',point:[4.8,2.15,-34.7]},
-    {key:'ayah',label:'Read ayah',point:[0,3,15]},
-    {key:'clock',label:'Read prayer clock',point:[-12.17,3.12,8]},
-    {key:'names',label:'Explore the 99 Names',point:[12.17,3.12,9.5]},
+    {key:'wall',label:'Explore inscriptions',point:[0,3,15]},
+    {key:'clock',label:'Read prayer clock',point:[-10.77,3.20,-3.68]},
     {key:'shelf',label:'Qur’an shelf',point:[8.8,2.55,-4.15]},
     {key:'shelf',label:'Qur’an shelf',point:[-8.8,2.55,-4.15]},
+    {key:'mat',label:'Take sejadah',point:[7.96,2.12,-4.18]},
+    {key:'pray',label:'Pray here',point:[.4,1.60,-9.6]},
+    {key:'stand',label:'Qur’an rehal'},
+    {key:'ball',label:'Kick the ball'},
+    ...[-21.8,-25.5,-29.2].map(z=>({key:'joinMeal',label:'Join the talam',point:[-9.9,1.38,z]})),
+    ...[-19.98,-44.98].map(z=>({key:'wash',label:'Take wudu’',point:[-40.68,1.90,z]})),
     {key:'cat',label:'Pet cat'}
 ];
+let participation=null,feedbackTimer;
+function feedback(message){
+    $('catReaction').textContent=message;
+    clearTimeout(feedbackTimer);
+    feedbackTimer=setTimeout(()=>{$('catReaction').textContent='';},2600);
+}
+function updateInventory(){
+    const items=[];
+    if(miniatures.carryingBook)items.push('Carrying Qur’an');
+    if(miniatures.matState==='carried')items.push('Carrying sejadah');
+    $('heldItem').hidden=!items.length;$('heldItem').textContent=items.join(' · ');
+}
+function leaveActivity(){
+    if(!participation)return;
+    const {eye,yaw,pitch,ground,kind}=participation;
+    camera.eye=eye;camera.yaw=yaw;camera.pitch=pitch;playerFloor=ground;
+    if(kind==='wash')miniatures.setTap(null);
+    if(kind==='joinMeal')miniatures.joinedTray=null;
+    participation=null;$('participation').hidden=true;held.clear();resetStick();dirty=true;
+    canvas.focus({preventScroll:true});
+}
+const washSteps=['Wash hands','Rinse mouth','Rinse nose','Wash face','Wash arms','Wipe head and ears','Wash feet'];
+const prayerSteps=[
+    ['Stand',1.62,.12],['Bow',1,.86],['Stand upright',1.62,.12],
+    ['Prostrate',.29,1.16],['Sit',.82,.35],['Prostrate',.29,1.16],
+    ['Stand',1.62,.12],['Bow',1,.86],['Stand upright',1.62,.12],
+    ['Prostrate',.29,1.16],['Sit',.82,.35],['Prostrate',.29,1.16],['Final sitting',.82,.35]
+];
+function activityStep(){
+    const {kind,index}=participation;
+    if(kind==='pray'){
+        const [label,height,pitch]=prayerSteps[index];
+        camera.eye[1]=1.53+height;camera.pitch=pitch;
+        $('stepLabel').textContent=(index<6?'First':'Second')+' rak‘ah · '+label;
+        $('stepNext').textContent=index===12?'Finish prayer':'Continue';
+    }else if(kind==='wash'){
+        $('stepLabel').textContent='Wudu’ · '+(index+1)+' / '+washSteps.length;
+        $('stepNext').textContent=washSteps[index];
+        camera.pitch=index===6?.92:.40;
+    }else{
+        $('stepLabel').textContent='Seated at the BOM talam';
+        $('stepNext').textContent=index===0?'Take a date':index===3?'Finish meal':'Eat rice';
+        miniatures.bites=index;camera.pitch=.52+.06*(index%2);
+    }
+    dirty=true;
+}
+function startActivity(kind,point){
+    if(!walking)setWalking(true);
+    leaveActivity();
+    participation={kind,index:0,eye:camera.eye.slice(),ground:playerFloor,yaw:camera.yaw,pitch:camera.pitch};
+    held.clear();resetStick();jumpHeight=jumpVelocity=0;followFriday=false;
+    if(kind==='joinMeal'){
+        miniatures.joinedTray=point[2];camera.eye=[-9.9,2.03,point[2]+.96];camera.yaw=0;
+    }else if(kind==='wash'){
+        miniatures.setTap(point[2]);camera.eye=[-39.58,2.42,point[2]];camera.yaw=Math.PI/2;
+    }else{
+        if(miniatures.matState==='carried')miniatures.placeMat('floor');
+        camera.eye=[.4,3.15,-10.12];camera.yaw=Math.PI;
+    }
+    updateInventory();$('nearby').hidden=true;nearestAction=null;
+    $('participation').hidden=false;activityStep();
+}
+$('stepLeave').onclick=leaveActivity;
+$('stepNext').onclick=()=>{
+    if(!participation)return;
+    const {kind}=participation;
+    const limit=kind==='pray'?prayerSteps.length:kind==='wash'?washSteps.length:4;
+    if(++participation.index<limit){activityStep();return;}
+    leaveActivity();feedback(kind==='pray'?'Prayer complete.':kind==='wash'?'Wudu’ complete.':'You finished the meal.');
+};
+
 let nearestAction=null,pickParts=[];
 function updateNearby(){
     let nearest=null,best=4;
+    if(participation)return;
     if(walking){
         const {eye,back,right,up}=pose(),tan=Math.tan(fieldOfView()/2);
         for(const stop of destinations){
-            const point=stop.point||miniatures.catPosition;
+            if(stop.key==='joinMeal'&&!miniatures.dinner.visible||stop.key==='ball'&&!miniatures.lawn.visible||
+               stop.key==='mat'&&miniatures.matState==='carried'||stop.key==='stand'&&miniatures.friday)continue;
+            const point=stop.key==='stand'?[miniatures.readingSide*8.65,1.85,-3.25]:
+                stop.key==='ball'?miniatures.ballPoint:stop.point||miniatures.catPosition;
             if(!point)continue;
             const offset=point.map((v,i)=>v-eye[i]),distance=Math.hypot(...offset);
             if(distance>=best)continue;
@@ -44,7 +123,18 @@ function updateNearby(){
     if(nearest)$('nearby').textContent=nearest.label;
 }
 let catFeedbackTimer;
-function interact(key){
+function interact(key,point){
+    if(key==='mat'){
+        miniatures.placeMat('carried');updateInventory();feedback('Sejadah picked up. Lay it in the prayer space.');dirty=true;return;
+    }
+    if(key==='joinMeal'||key==='wash'||key==='pray'){
+        startActivity(key,point||destinations.find(stop=>stop.key===key).point);return;
+    }
+    if(key==='ball'){
+        miniatures.ballKick=sceneSeconds;petUntil=sceneSeconds+5;dirty=true;feedback('You kicked the ball. The children chase it back.');return;
+    }
+    if(key==='stand'&&miniatures.carryingBook){placeBook();return;}
+    if(key==='stand')key='shelf';
     if(key==='cat'){
         const reaction=miniatures.petCat(sceneSeconds,pose().eye);
         if(!reaction)return;
@@ -54,14 +144,24 @@ function interact(key){
         catFeedbackTimer=setTimeout(()=>{$('catReaction').textContent='';},2200);
     }else openCommunity(key);
 }
-$('nearby').onclick=()=>{if(nearestAction)interact(nearestAction.key);};
+$('nearby').onclick=()=>{if(nearestAction)interact(nearestAction.key,nearestAction.point);};
 $('explore').onchange=e=>{
     const key=e.target.value;e.target.value='';
-    const stop={shelf:'shelf',clock:'clock',names:'names',donate:'foyer',board:'foyer',founders:'memorial',ayah:'qibla',cat:'cat'}[key];
+    if(gameOptions.open)gameOptions.close();
+    if(key==='joinMeal'){
+        $('activity').value='thursday';$('activity').dispatchEvent(new Event('change'));
+    }
+    if(key==='ball'){
+        $('activity').value='daily';$('activity').dispatchEvent(new Event('change'));
+        $('lighting').value='sunset';setLighting('sunset');
+    }
+    if(['joinMeal','mat','pray','wash','ball'].includes(key)&&!walking)setWalking(true);
+    const stop={joinMeal:'meal',mat:'shelf',wash:'wudu',pray:'prayer',ball:'padang',wall:'qibla',shelf:'shelf',clock:'clock',donate:'tabung',board:'foyer',founders:'memorial',ayah:'qibla',cat:'cat'}[key];
     if(stop)followFriday=false;
     if(key==='cat'&&walking)setWalking(false);
     if(stop)chooseView(stop,false);
     if(key==='cat'&&!walking&&miniatures.catPosition)camera.target=miniatures.catPosition.slice();
+    if(key==='ball'){feedback('Walk up to the ball to join the game.');return;}
     interact(key);
 };
 $('settings').onclick=e=>{
@@ -120,14 +220,12 @@ document.addEventListener('visibilitychange',resetStick);
 // opaque triangle wins, including unselectable walls in front of a hotspot.
 function meshAction(name){
     if(name.startsWith('Prayer clock'))return 'clock';
-    if(name.startsWith('Asma ul-Husna'))return 'names';
-    if(name.startsWith('Ayat reading panel'))return 'ayah-kursi';
     if(/^(Bookcase|Shelved books)/.test(name))return 'shelf';
     if(/^(Foyer|Terrace) tabung/i.test(name))return 'donate';
     if(/^RMUTP board/i.test(name))return 'board';
     if(/^Contributors plaque/i.test(name))return 'founders';
     if(name==='Inscribed drum frieze')return 'ayah';
-    if(name==='Qibla marble elevation')return 'ayah-kursi';
+    if(name==='Qibla marble elevation'||name==='Marble moulding returns')return 'wall';
     return '';
 }
 function intersectsBounds(eye,ray,min,max,limit){
@@ -164,7 +262,7 @@ function meshDistance(part,eye,ray,limit){
     }
     return limit;
 }
-function pickAt(x,y){
+function pickAt(x,y,hover=false){
     if(!renderer)return;
     const rect=canvas.getBoundingClientRect(),p=pose(),tan=Math.tan(fieldOfView()/2);
     const sx=(2*(x-rect.left)/rect.width-1)*tan*rect.width/rect.height;
@@ -176,11 +274,11 @@ function pickAt(x,y){
         const offset=cat.map((v,i)=>v-p.eye[i]),along=dot(offset,ray);
         if(along>0&&Math.hypot(...offset.map((v,i)=>v-along*ray[i]))<.46){closest=along;key='cat';}
     }
-    if(miniatures.bookPlaced){
+    if(!miniatures.friday){
         const offset=[8.65*miniatures.readingSide,1.8,-3.25].map((v,i)=>v-p.eye[i]);
         const along=dot(offset,ray);
         if(along>0&&along<closest&&Math.hypot(...offset.map((v,i)=>v-along*ray[i]))<.32){
-            closest=along;key='shelf';
+            closest=along;key='stand';
         }
     }
     if(!hasStaticTarget()&&!Number.isFinite(closest))return;
@@ -194,6 +292,7 @@ function pickAt(x,y){
         closest=distance;
         key=part.action;
     }
+    if(hover)return key;
     if(key)interact(key);
 }
 let tap=null;
@@ -208,3 +307,11 @@ canvas.addEventListener('pointerup',e=>{
     tap=null;
 });
 canvas.addEventListener('pointercancel',()=>{tap=null;});
+
+let lastHover=0;
+canvas.addEventListener('pointermove',e=>{
+    if(e.pointerType!=='mouse'||e.buttons||performance.now()-lastHover<100)return;
+    lastHover=performance.now();
+    $('wallHint').hidden=pickAt(e.clientX,e.clientY,true)!=='wall';
+});
+canvas.addEventListener('pointerleave',()=>{$('wallHint').hidden=true;});

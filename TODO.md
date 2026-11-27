@@ -24,11 +24,11 @@ Active backlog of upcoming fixes, architectural corrections, and interactive imp
 ## 💰 Donations, Info Board & Prayer Clock
 
 - [ ] **Tabung Masjid (Donation Boxes)**
-  - [ ] Update the 3D donation box design *(custom design to be provided later)*.
-  - [ ] Reposition donation boxes to their authentic real-world locations.
+  - [x] Model the black entrance safe and its QR card ([ref-tabung-masjid-safe-duitnow-qr.jpg](image/ref-tabung-masjid-safe-duitnow-qr.jpg)).
+  - [x] Place the tabung against the entrance glazing pier.
   - [ ] Display the bank name and copyable account number once verified bank transfer details are supplied.
-- [ ] **Notice Board & Rakan Masjid UTP (RMUTP)**
-  - [ ] Update the 3D placement of the notice board.
+- [x] **Notice Board & Rakan Masjid UTP (RMUTP)**
+  - [x] Place the noticeboard by the bench in the street entrance passage ([left](image/ref-entrance-passage-noticeboard-bench-left.jpg) / [right](image/ref-entrance-passage-bilik-tetamu-right.jpg)).
   - [x] Update information covering Masjid An-Nur UTP and Rakan Masjid UTP (RMUTP).
   - [x] Add official Instagram (`IG`) account handle and link.
 - [x] **Indoor Waktu Solat (Prayer Clock)**
@@ -44,9 +44,9 @@ Active backlog of upcoming fixes, architectural corrections, and interactive imp
 ## 📖 Islamic Calligraphy & Educational Features
 
 - [ ] **High-Resolution Khat, Arabic Font & Asma ul-Husna**
-  - [ ] Upgrade the resolution of the Quranic *ayat* and wall calligraphy textures. New high-resolution Ayat al-Kursi and 99 Names panels are in the hall. The photographic qibla wall and dome frieze still need higher-detail source imagery.
+  - [ ] Upgrade the resolution of the Quranic *ayat* and wall calligraphy textures. The photographic qibla wall and dome frieze still need higher-detail source imagery.
   - [x] Use a cleaner, higher-quality Arabic font for rendered Arabic text.
-  - [x] Add **Asma ul-Husna** (99 Names of Allah) wall/explainer integration.
+  - [x] Add **Asma ul-Husna** (99 Names of Allah) explainer in the Explore menu.
 - [x] **Qur'an Shelf & Interactive Reading (*Rehal*)**
   - [x] Add a Qur'an / Islamic bookshelf where users can pick up a Qur'an, place a wooden *rehal*, and read.
 
@@ -65,5 +65,5 @@ Active backlog of upcoming fixes, architectural corrections, and interactive imp
   - [x] Add an "over-petted" reaction: if petted too much, the cat gets mad and runs away from the user.
 - [x] **UTP Students & Campus Life**
   - [x] Make UTP student avatars walk and move more actively around the mosque exterior and walkways.
-- [ ] **Thursday Evening · Blessings Over Meals (BOM)**
-  - [ ] Relocate the *Blessings Over Meals (BOM)* communal dining area to its authentic real-world location.
+- [x] **Thursday Evening · Blessings Over Meals (BOM)**
+  - [x] Relocate the *Blessings Over Meals (BOM)* communal dining area to its authentic real-world location.

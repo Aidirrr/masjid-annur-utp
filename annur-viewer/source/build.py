@@ -134,7 +134,7 @@ class Scene:
             glass=any(k in name.lower() for k in ('glazing','turquoise','curtain-wall'))
             doc['materials'].append({'name':name,'doubleSided':True,'pbrMetallicRoughness':{'metallicFactor':metallic,'roughnessFactor':.23 if glass else .64}})
             doc['meshes'].append({'name':name,'primitives':[{'attributes':{'POSITION':acc,'NORMAL':acc+1,'COLOR_0':acc+2},'indices':acc+3,'material':material}]})
-            if name == 'Clear architectural glazing':
+            if name == 'Clear architectural glazing' or (name.startswith('Automatic leaf ') and name.endswith(' glass')):
                 doc['materials'][-1].update(alphaMode='BLEND',doubleSided=False)
                 doc['materials'][-1]['pbrMetallicRoughness']['baseColorFactor'] = [1,1,1,.12]
             if texture:

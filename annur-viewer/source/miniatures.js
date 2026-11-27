@@ -120,7 +120,6 @@ class MiniatureScene {
         this.campusAssets();
         this.walker=this.person('#477f80','#314554','#a7804f','#b57e5d','#f3eee0');
         this.worshipper=this.person('#e1d6b6','#5c6864','#86724e','#a26a4b','#333633');
-        this.feeder=this.person('#a45d48','#344755','#55645a','#b98059','#d9c7a2');
         this.readers=[
             {body:this.person('#577465','#6c6458','#a38a64','#b78061','#eee8d7'),x:-4,z:5.35},
             {body:this.person('#a8b8b6','#4a6163','#6c8583','#ab7658','#484742'),x:-5.02,z:5.97},
@@ -129,6 +128,12 @@ class MiniatureScene {
         ];
         this.rehal=this.openBookOnStand();
         this.readingStand=this.openBookOnStand();
+        const m=this.people,first=m.colors.length;
+        const rug=(w,l,y,color)=>m.panel([-w,y,-l],[-w,y,l],[w,y,l],[w,y,-l],color);
+        rug(.40,.74,0,'#aa8958');rug(.37,.70,.002,'#285d4a');rug(.31,.62,.004,'#477461');
+        this.playerMat={first,end:m.colors.length};
+        this.matState='shelf';this.ballKick=-Infinity;
+        this.playerWater=m.sleeve(.012,.014,'#87c7d0',.6);
         this.washers=[
             {z:-21.58,body:this.person('#7596a5','#56685e','#849079','#b87e5e','#343635',this.people,true)},
             {z:-16.78,body:this.person('#cab998','#68777a','#85775e','#a77555','#403a34',this.people,true)}
@@ -137,8 +142,6 @@ class MiniatureScene {
         this.washPose=new Float64Array(14);
         this.seats=[];
         this.makeCongregation();
-        this.pouch=this.people.oval(.095,.066,'#bf9b70',.19);
-        this.pellets=Array.from({length:6},()=>this.people.oval(.019,.017,'#d6a458',.036,5));
         this.handfuls=Array.from({length:4},()=>({
             start:-Infinity,active:true,pieces:Array.from({length:6},()=>this.people.oval(.025,.022,'#e2ae62',.043,5))
         }));
@@ -161,15 +164,42 @@ class MiniatureScene {
         this.parts.forEach(part=>part.finish());
         this.readingSide=1;
         this.placeReadingStand(false);
+        this.placeMat('shelf');
+        this.setTap(null);
+        this.human(this.reclining,0,0,0,0,this.stand);
+        // Lay the finished pose on its back on the grass, away from the ball.
+        const vertices=this.resting.coords;
+        for(let k=0;k<vertices.length;k+=7){
+            const y=vertices[k+1],ny=vertices[k+4];vertices[k]+=4.4;
+            vertices[k+1]=1.34+vertices[k+2];vertices[k+2]=-39.8-y;
+            vertices[k+4]=vertices[k+5];vertices[k+5]=-ny;
+        }
         this.parkCycles();
-        this.people.frame(-4,1.53,5.96,0);
-        this.people.place(this.rehal,[0,0,0],[0,1,0]);
         this.update(0);
+    }
+    placeMat(state){
+        this.matState=state;
+        const shelf=state==='shelf';
+        this.people.frame(shelf?7.96:.4,state==='carried'?-10:shelf?2.12:1.546,shelf?-4.23:-9.6,0,shelf?.36:1);
+        this.people.place(this.playerMat,[0,0,0],[0,1,0]);
+    }
+    setTap(z){
+        this.people.frame(-40.68,z===null?-10:1.17,z||0,0);
+        this.people.place(this.playerWater,[0,.04,0],[0,.70,0]);
     }
     placeReadingStand(placed){
         this.carryingBook=false;this.bookPlaced=placed;
-        this.people.frame(this.readingSide*8.65,placed?1.53:-10,-3.25,0);
-        this.people.place(this.readingStand,[0,0,0],[0,1,0]);
+        this.showPrayerBooks();
+    }
+    showPrayerBooks(){
+        this.people.frame(-4,this.friday?-10:1.53,5.96,0);
+        this.people.place(this.rehal,[0,0,0],[0,1,0]);
+        const m=this.people,side=this.readingSide,stand=this.readingStand;
+        m.frame(side*8.65,this.friday?-10:1.53,-3.25,0);
+        m.place({first:stand.first,end:stand.pages},[0,0,0],[0,1,0]);
+        const shelved=!this.carryingBook&&!this.bookPlaced;
+        m.frame(side*(shelved?8.3:8.65),shelved?1.78:this.bookPlaced&&!this.friday?1.53:-10,shelved?-4.22:-3.25,0);
+        m.place({first:stand.pages,end:stand.end},[0,0,0],[0,1,0]);
     }
     campusAssets(){
         const m=this.people;
@@ -200,16 +230,19 @@ class MiniatureScene {
             model.scale=.66+i*.06;
             return model;
         });
+        this.resting=new MiniatureBatch('Resting on the padang',true);
+        this.parts.push(this.resting);
+        this.reclining=this.person('#698495','#83735e','#727965','#b58561','#e8dfcd',this.resting);
         this.ball=this.lawn.oval(.115,.115,'#e3c683',.23);
         this.meals=[];
         this.reciters=[];
         for(let i=0;i<3;i++){
             this.meals.push({
-                z:-36.4-i*3.6,
+                z:-21.8-i*3.7,
                 tray:this.dinner.surface([[0,.40,.40],[.4,.49,.49],[.8,.51,.51],[1,.48,.48],[.55,.45,.45],[.52,0,0]],'#b4bdba',.067,20),
                 rice:this.dinner.oval(.25,.20,'#eddfb9',.11),
                 dates:this.dinner.oval(.087,.095,'#835638',.08),
-                diners:[0,1].map((_,j)=>this.person(tones[(i+j)%4],'#51605a','#827d68','#b18160',j?'#f4ebd7':'#373835',this.dinner))
+                diners:[0,1,2,3,4].map((_,j)=>this.person(tones[(i+j)%4],'#51605a','#827d68','#b18160',j?'#f4ebd7':'#373835',this.dinner))
             });
             const reader=this.person(tones[i],'#50605a',tones[i],'#a97454','#f4edda',this.recitation);
             reader.robe=i===1;
@@ -326,27 +359,31 @@ class MiniatureScene {
             ]}:null;
             this.human(student,x,1.15,z,heading,this.stand,t*5.4+i,Math.abs(Math.cos(a)),-1,false,arms);
         });
+        this.resting.visible=!!this.sunset;
         this.lawn.visible=this.afternoon&&!this.thursday;
         if(this.lawn.visible){
+            const kick=t-this.ballKick,reaction=kick>=0&&kick<4?Math.sin(Math.PI*kick/4):0;
             this.children.forEach((child,i)=>{
                 const a=t*.67+i*Math.PI;
-                this.human(child,8+1.8*Math.sin(a),1.162,-42+.84*Math.cos(a),Math.atan2(1.8*Math.cos(a),-.84*Math.sin(a)),this.stand,t*8+i,.95);
+                this.human(child,8+1.8*Math.sin(a)+reaction*2.7,1.162,-42+.84*Math.cos(a),Math.atan2(1.8*Math.cos(a),-.84*Math.sin(a)),this.stand,t*8+i,.95);
             });
-            this.lawn.frame(8+1.3*Math.sin(t*.67+.5),1.162+.18*Math.abs(Math.sin(t*3)),-42,0);
+            this.ballPoint=[8+1.3*Math.sin(t*.67+.5)+3.7*reaction,1.162+.18*Math.abs(Math.sin(t*3))+.7*reaction,-42];
+            this.lawn.frame(...this.ballPoint,0);
             this.lawn.place(this.ball,[0,0,0],[0,.23,0]);
         }
         const recite=this.thursdayTime%48>=24;
         this.dinner.visible=this.thursday&&!recite;
         this.recitation.visible=this.thursday&&recite;
         if(this.dinner.visible)for(const {z,tray,rice,dates,diners} of this.meals){
-            this.dinner.frame(-25,1.175,z,0);
+            this.dinner.frame(-9.9,1.175,z,0);
             this.dinner.place(tray,[0,0,0],[0,.067,0]);
-            this.dinner.place(rice,[0,.046,0],[0,.16,0]);
+            this.dinner.place(rice,[0,.046,0],[0,.16*(this.joinedTray===z?1-.18*(this.bites||0):1),0]);
             this.dinner.place(dates,[.25,.046,.14],[.25,.12,.14]);
             diners.forEach((body,i)=>{
                 const reach=.15+.12*Math.sin(t*1.5+i+z),p=this.readingPose;p.set(this.sit);
                 p[6]=reach;p[7]=.40;p[13]=.28+reach;p[12]=.28;
-                this.human(body,-25+(i?.91:-.91),1.175,z,i?-Math.PI/2:Math.PI/2,p,0,0,-1,true);
+                const angle=(i+1)*2*Math.PI/(diners.length+1);
+                this.human(body,-9.9+.88*Math.sin(angle),1.175,z+.88*Math.cos(angle),angle+Math.PI,p,0,0,-1,true);
             });
         }
         if(this.recitation.visible)this.reciters.forEach(({reader,book},i)=>{
@@ -375,6 +412,7 @@ class MiniatureScene {
             plank(sign,.47,.53,sign<0?-.132:.001,sign<0?-.001:.132);
             plank(sign,.53,1,-.132,.132);
         }
+        const pages=m.colors.length;
         // The gilt-edged covers and curved page blocks meet at the sewn spine.
         // Narrow coloured borders leave both cream pages open and unlettered.
         for(const side of [-1,1]){
@@ -397,7 +435,7 @@ class MiniatureScene {
         }
         m.panel([-.005,.277,.08],[.004,.277,.08],[.009,.279,.15],[0,.279,.15],'#93533e');
         m.panel([0,.279,.15],[.009,.279,.15],[.015,.225,.168],[.006,.225,.168],'#93533e');
-        return {first,end:m.colors.length};
+        return {first,pages,end:m.colors.length};
     }
     person(shirt,trousers,sash,skin,cap,m=this.people,washedArms=false) {
         const torso=m.surface([[0,0,0],[.01,.194,.125],[.10,.196,.128],[.35,.173,.119],[.78,.20,.12],[.91,.202,.11],[1,.088,.075]],shirt,.64,12);
@@ -423,13 +461,14 @@ class MiniatureScene {
             ['#bfc5a7','#68705f','#86896d'],['#a99388','#545e62','#796961']
         ];
         const skins=['#b07959','#bc8d6d','#9b6e50','#c59574'];
-        for(let row=0;row<6;row++)for(let col=0;col<12;col++){
-            const x=(col-5.5)*.9,z=4.28+row*1.72;
-            if((row===1||row===2)&&x< -2.2)continue;
+        for(let row=0;row<9;row++)for(let col=0;col<22;col++){
+            const x=(col-10.5)*.90,z=4.28+row*1.72-(row>=6?15.48:0);
+            if(x>8&&z<6||row===8&&Math.abs(x)>8)continue; // Stair and balcony columns.
+            if((row===1||row===2)&&x< -2.2&&x> -5.6)continue;
             const outfit=clothing[(row*5+col*3+Math.floor(col/3))%clothing.length];
             const body=this.person(...outfit,skins[(row*3+col)%4],(row+col)%3===0?'#383a36':'#ece8d7',this.congregation);
             let route=null;
-            if(row===0||row===1&&col>=8){
+            if(row===0&&col<12||row===1&&col>=8&&col<12){
                 // Approach through the shaded east colonnade and the ramp in
                 // its glazed facade. The interior aisle stays outside the rows.
                 const lane=col%2,aisle=-7.18-lane*.50,door=6.48+lane*.77;
@@ -447,6 +486,20 @@ class MiniatureScene {
             const route=this.walkRoute([[lane,start],[lane,doorAisle],[x,doorAisle],[x,z]]);
             const body=this.person(...clothing[i],skins[col],i%3?'#e6e5d4':'#343b38',this.congregation);
             this.seats.push({x,z,row,col,body,route,rear:true});
+        }
+        // Fill the rear musalla and covered forecourt around the entrance aisle.
+        for(const outside of [false,true]){
+            for(let row=0;row<6;row++)for(let col=0;col<(outside?30:20);col++){
+                const x=(col-(outside?14.5:9.5))*.91,z=(outside?-22:-6.8)-row*1.72;
+                if(Math.abs(x)<1.5)continue;
+                if(!outside&&this.seats.some(seat=>Math.hypot(x-seat.x,z-seat.z)<1.0))continue;
+                if(!outside&&Math.abs(z+13)<1&&Math.abs(x-2)<1)continue;
+                // Exclude the flared columns on the arcade's 5.08 x 4.88 m grid.
+                if(outside&&Math.abs(x-2.54-Math.round((x-2.54)/5.08)*5.08)<.65&&
+                    Math.abs(z+33.39-Math.round((z+33.39)/4.88)*4.88)<.85)continue;
+                const body=this.person(...clothing[(col+row*3)%8],skins[col%4],col%3?'#ede9dc':'#423d37',this.congregation);
+                this.seats.push({x,z,row,col,body,outside});
+            }
         }
         this.imam=this.person('#ede6cf','#57675d','#758064','#a57355','#e9e5d0',this.congregation);
         this.crowdPose=new Float64Array(14);
@@ -611,14 +664,14 @@ class MiniatureScene {
             return this.crowdPose;
         };
         for(const seat of this.seats){
-            let {x,z}=seat,ground=1.53,yaw=0,gait=0,stride=0,pose;
+            let {x,z}=seat,ground=seat.outside?1.15:1.53,yaw=0,gait=0,stride=0,pose;
             if(clock<30&&seat.route){
                 const {total,legs}=seat.route;
                 const arrival=Math.min(28.6,total/(1.22+.035*(seat.col%4)));
                 const walked=total*Math.min(1,clock/arrival);
                 const leg=legs.find(l=>l.end>=walked)||legs[legs.length-1];
                 x=leg.x+leg.ux*(walked-leg.start);z=leg.z+leg.uz*(walked-leg.start);yaw=leg.yaw;
-                ground=seat.rear?this.terraceHeight(z):1.15+.38*Math.max(0,Math.min(1,(14.9-x)/2.08));
+                ground=seat.rear?this.terraceHeight(z):1.15+.38*Math.max(0,Math.min(1,(14.9+x)/2.08));
                 stride=1-ease((clock-arrival+.50)/.5);
                 gait=walked*2*Math.PI/1.42;
                 pose=takePose(this.stand,this.sit,ease((clock-arrival)/1.15));
@@ -707,29 +760,29 @@ class MiniatureScene {
             }
         }
     }
-    feedFish(seconds=this.lastSceneTime){
+    feedFish(seconds=this.lastSceneTime,origin=[8,2.7,23.35]){
         if(!Number.isFinite(seconds))return false;
         const handful=this.handfuls[this.nextHandful];
-        handful.start=seconds;handful.active=true;
+        handful.start=seconds;handful.active=true;handful.origin=origin.slice();
         this.nextHandful=(this.nextHandful+1)%this.handfuls.length;
         this.lastThrow=seconds;
         return true;
     }
     rippleAge(seconds){
-        let age=((seconds-2.17)%6+6)%6;
+        let age=999;
         for(const handful of this.handfuls){
             const sinceImpact=seconds-handful.start-.65;
             if(sinceImpact>=0)age=Math.min(age,sinceImpact);
         }
         return age;
     }
-    scatterFood(pieces,age,scatter=0){
+    scatterFood(pieces,age,scatter=0,origin=[8,2.7,23.35]){
         for(let i=0;i<pieces.length;i++){
             const flight=(age-i*.045)/.65,k=Math.max(0,Math.min(1,flight));
-            const x=.16+(-.16+.23*Math.sin(i*4.19+scatter))*k;
-            const z=.49+(2.26+.21*Math.cos(i*2.7+scatter))*k;
+            const x=origin[0]+(8+.23*Math.sin(i*4.19+scatter)-origin[0])*k;
+            const z=origin[2]+(26.1+.21*Math.cos(i*2.7+scatter)-origin[2])*k;
             const afloat=flight>=1,drift=Math.min(3,Math.max(0,age-.65));
-            const y=afloat?-1.14+.012*Math.sin(7*drift+i):1.45+1.6*k-4.19*k*k;
+            const y=afloat?.012*Math.sin(7*drift+i):origin[1]*(1-k)+2.4*k*(1-k);
             const scale=flight<0?.0001:Math.max(.0001,1-Math.max(0,drift-.4-i*.1));
             const zz=z+drift*.09;
             this.people.place(pieces[i],[x,y,zz],[x,y+.034*scale,zz],scale);
@@ -806,16 +859,12 @@ class MiniatureScene {
             }
         });
         this.washers.forEach((person,i)=>this.washAtStation(person,t,i));
-        const phase=t%6;
-        const manualAge=t-this.lastThrow;
-        this.human(this.feeder,8,1.15,23.35,0,this.stand,0,0,manualAge>=0&&manualAge<1.5?1.55+manualAge:phase);
-        this.people.place(this.pouch,[-.11,.93,.18],[-.11,1.115,.18]);
-        this.scatterFood(this.pellets,phase-1.52);
-        let gathering=this.pulse(phase,1.65,3.2,3.9,5.6);
+        this.people.frame(0,0,0,0);
+        let gathering=0;
         for(let i=0;i<this.handfuls.length;i++){
             const handful=this.handfuls[i],age=t-handful.start;
             if(handful.active){
-                this.scatterFood(handful.pieces,age,i*.77);
+                this.scatterFood(handful.pieces,age,i*.77,handful.origin);
                 if(age>3||age<0)handful.active=false;
             }
             if(age>=0&&age<4.8)gathering=Math.max(gathering,1.32*this.pulse(age,.15,1.15,2.8,4.8));
